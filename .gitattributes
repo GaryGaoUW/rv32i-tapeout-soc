@@ -1,0 +1,42 @@
+# Normalize line endings across macOS/Linux/Windows.
+# Store everything as LF in the repo; check out native on each OS.
+* text=auto
+
+# Source files: always LF in the repo (safe for tools/Verilator/gcc).
+*.v      text eol=lf
+*.sv     text eol=lf
+*.vh     text eol=lf
+*.svh    text eol=lf
+*.c      text eol=lf
+*.h      text eol=lf
+*.cpp    text eol=lf
+*.hpp    text eol=lf
+*.py     text eol=lf
+*.s      text eol=lf
+*.S      text eol=lf
+*.ld     text eol=lf
+*.md     text eol=lf
+*.txt    text eol=lf
+*.hex    text eol=lf
+*.mem    text eol=lf
+Makefile text eol=lf
+*.mk     text eol=lf
+*.tcl    text eol=lf
+*.xdc    text eol=lf
+*.json   text eol=lf
+*.yml    text eol=lf
+*.yaml   text eol=lf
+
+# Windows batch/PowerShell scripts need CRLF to run correctly.
+*.bat    text eol=crlf
+*.cmd    text eol=crlf
+*.ps1    text eol=crlf
+
+# Binary files: never touch.
+*.bin    binary
+*.elf    binary
+*.png    binary
+*.jpg    binary
+*.gds    binary
+*.vcd    binary
+*.fst    binary
