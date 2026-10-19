@@ -33,17 +33,29 @@ module regfile (
     input [31:0] wdata
 );
 
+    // 32x32 register file with asynchronous (combinational) reads.
+    // Note: because of the synchronous reset loop below, synthesis will map
+    // this to flip-flops rather than distributed RAM, which is fine for a
+    // register file this small. Can be read and written in the same cycle.
     reg [31:0] regs[0:31];
+
+    // Internal Forwarding (Write-First): 
+    // If reading the same register that is currently being written, 
+    // bypass the operation to the register file array and directly forward the wdata to read.
+    assign rdata1 = (raddr1 == 5'b00000) ? 32'h00000000 : 
+                    ((we == 1'b1) && (waddr == raddr1)) ? wdata : 
+                    regs[raddr1];
+
+    assign rdata2 = (raddr2 == 5'b00000) ? 32'h00000000 : 
+                    ((we == 1'b1) && (waddr == raddr2)) ? wdata : 
+                    regs[raddr2];
+
     integer i;
-
-    assign rdata1 = (raddr1 == 5'b00000) ? 32'h00000000 : regs[raddr1];
-    assign rdata2 = (raddr2 == 5'b00000) ? 32'h00000000 : regs[raddr2];
-
     always @(posedge clk) begin
         if (!rst_n) begin
-            // Do nothing. Supposed to clean up the regs, 
-            for(i = 0; i < 32; i = i + 1) begin
-                regs[i] <= 32'h00000000;
+            // On reset, initialize all registers to 0. Good to have a known state for simulation and debugging.
+            for (i = 0; i < 32; i = i + 1) begin
+                regs[i] <= 32'b0;
             end
         end else begin
             if (we == 1'b1 && waddr != 5'b00000) begin

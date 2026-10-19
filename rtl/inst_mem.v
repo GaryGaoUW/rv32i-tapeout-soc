@@ -21,74 +21,82 @@
 
 
 module inst_mem (
-    input  [31:0] pc_addr,
-    output [31:0] inst
+    input clk,
+    input rst_n,
+    input stall,
+    input [31:0] pc_addr,
+    output reg [31:0] inst
 );
+    // Use ram_syle = "block" to infer block RAM on FPGA
+    (* ram_style = "block" *) reg [31:0] rom[0:1023];
 
-    reg [31:0] rom[0:1023];
-    
+    // Initialize the instruction memory with a simple hazard test program
     integer i;
-
     initial begin
         for (i = 0; i < 1024; i = i + 1) begin
-            rom[i] = 32'h00000013; 
+            rom[i] = 32'h00000013;  // Fill with nop natively
         end
 
-        rom[0]  = 32'h00000093; // addi x1, x0, 0
-        rom[1]  = 32'h00100113; // addi x2, x0, 1
-        rom[2]  = 32'h00200193; // addi x3, x0, 2
-        rom[3]  = 32'h00300213; // addi x4, x0, 3
-        rom[4]  = 32'h00400293; // addi x5, x0, 4
-        rom[5]  = 32'h00500313; // addi x6, x0, 5
-        rom[6]  = 32'h00600393; // addi x7, x0, 6
-        rom[7]  = 32'h00700413; // addi x8, x0, 7
-        rom[8]  = 32'h00800493; // addi x9, x0, 8
-        rom[9]  = 32'h00900513; // addi x10, x0, 9
-        
-        rom[10] = 32'h00208a33; // add x20, x1, x2  
-        rom[11] = 32'h014a8ab3; // add x21, x21, x20 
-        rom[12] = 32'h015b0b33; // add x22, x22, x21 
-        rom[13] = 32'h401b0bb3; // sub x23, x22, x1  
-        rom[14] = 32'h017b7c33; // and x24, x22, x23
-        rom[15] = 32'h018c6cb3; // or  x25, x24, x24
-        rom[16] = 32'h019ccfb3; // xor x26, x25, x25
-        rom[17] = 32'h002d1d33; // sll x26, x26, x2
-        rom[18] = 32'h002d5db3; // srl x27, x26, x2
-        rom[19] = 32'h402dddb3; // sra x27, x27, x2
-        rom[20] = 32'h01bc2e33; // slt x28, x24, x28
-        rom[21] = 32'h01bd3eb3; // sltu x29, x26, x29
+        rom[0]  = 32'h00100093;  // addi x1, x0, 1     (x1=1)
+        rom[1]  = 32'h00200113;  // addi x2, x0, 2     (x2=2)
+        rom[2]  = 32'h00300193;  // addi x3, x0, 3     (x3=3)
+        rom[3]  = 32'h00400213;  // addi x4, x0, 4     (x4=4)
 
+        rom[4]  = 32'h002082b3;  // add x5, x1, x2     (EX-to-EX FW: x5=3)
+        rom[5]  = 32'h40428333;  // sub x6, x5, x4     (EX-to-EX FW: x6=-1)
+        rom[6]  = 32'h005303b3;  // add x7, x6, x5     (EX FW Op1&Op2: x7=2)
+        rom[7]  = 32'h00000013;  // nop
+        rom[8]  = 32'h00538433;  // add x8, x7, x5     (MEM/WB FW: x8=5)
+        rom[9]  = 32'h00000013;  // nop
 
-        rom[22] = 32'h0ff00093; // addi x1, x0, 255
-        rom[23] = 32'h7ff00113; // addi x2, x0, 2047
-        rom[24] = 32'h80000193; // addi x3, x0, -2048 (Sign-Ext Edge Case)
-        rom[25] = 32'h12345637; // lui x12, 0x12345
-        rom[26] = 32'h67860613; // addi x12, x12, 0x678
-        rom[27] = 32'h00000697; // auipc x13, 0 (x13 = PC)
-        rom[28] = 32'h01068693; // addi x13, x13, 16
+        rom[10] = 32'h00500013;  // addi x0, x0, 5     (Write x0 ignored)
+        rom[11] = 32'h002004b3;  // add x9, x0, x2     (Must not FW 5! x9=2)
+        rom[12] = 32'h00902023;  // sw x9, 0(x0)       (mem[0]=2)
+        rom[13] = 32'h00002503;  // lw x10, 0(x0)      (x10=2)
+        rom[14] = 32'h00a105b3;  // add x11, x2, x10   (Load-Use STALL! x11=4)
+        rom[15] = 32'h00002603;  // lw x12, 0(x0)      (x12=2)
+        rom[16] = 32'h00c02223;  // sw x12, 4(x0)      (MEM FW no stall! mem[4]=2)
 
-        rom[29] = 32'h00000713; // li x14, 0
-        rom[30] = 32'h00172023; // sw x1, 0(x14)    (mem[0] = 255)
-        rom[31] = 32'h00272223; // sw x2, 4(x14)    (mem[4] = 2047)
-        rom[32] = 32'h00072783; // lw x15, 0(x14)   (x15 = 255)
-        rom[33] = 32'h00f78833; // add x16, x15, x15 
-        rom[34] = 32'h00472883; // lw x17, 4(x14)   (x17 = 2047)
-        rom[35] = 32'hfe172ae3; // sw x1, -4(x14)   (Negative offset address calc)
-
-        rom[36] = 32'h00000813; // li x16, 0
-        rom[37] = 32'h00100893; // li x17, 1
-        rom[38] = 32'h01180463; // beq x16, x17, 8   (False: Next)
-        rom[39] = 32'h00180813; // addi x16, x16, 1  (x16 = 1)
-        rom[40] = 32'h01180463; // beq x16, x17, 8   (True: Jump to PC+8)
-        rom[41] = 32'hdeadb0b7; // lui x1, 0xdeadb   (Poison: Should be skipped)
-        rom[42] = 32'h00181893; // slli x17, x16, 1  (Landing Site)
-        rom[43] = 32'h008000ef; // jal x1, 8         (Jump forward, save PC in x1)
-        rom[44] = 32'hdeadb0b7; // lui x1, 0xdeadb   (Poison: Should be skipped)
-        rom[45] = 32'h00808067; // jalr x0, 8(x1)    (Return jump)
-
-        rom[46] = 32'h0000006f; // jal x0, 0         (Infinite Loop/Trap)
+        rom[17] = 32'h00b00693;  // addi x13, x0, 11
+        rom[18] = 32'h00c00713;  // addi x14, x0, 12
+        rom[19] = 32'h00e68463;  // beq x13, x14, +8   (11!=12 Not Taken)
+        rom[20] = 32'h00100793;  // addi x15, x0, 1    (Executed)
+        rom[21] = 32'h00d68663;  // beq x13, x13, +12  (11==11 Taken!)
+        rom[22] = 32'h00000013;  // nop                (Flushed)
+        rom[23] = 32'h00000013;  // nop                (Flushed)
+        rom[24] = 32'h00200813;  // addi x16, x0, 2    (Executed via jump)
+        rom[25] = 32'h00c000ef;  // jal x1, +12        (Absolute Jump)
+        rom[26] = 32'h00000013;  // nop                (Flushed)
+        rom[27] = 32'h00000013;  // nop                (Flushed)
+        rom[28] = 32'h00000013;  // nop                (Executed)
+        rom[29] = 32'h08400893;  // addi x17, x0, 132  (Target ADDR)
+        rom[30] = 32'h00088967;  // jalr x18, 0(x17)   (JALR!)
+        rom[31] = 32'h00000013;  // nop                (Flushed)
+        rom[32] = 32'h00000013;  // nop                (Flushed)
+        rom[33] = 32'h00000013;  // nop                (Jump target @ PC=132, executed)
+        rom[34] = 32'h00100993;  // addi x19, x0, 1    (Executed @ PC=136)
     end
 
-    assign inst = rom[pc_addr[31:2]];
 
+    // Using a synchonous B-RAM, the synthesis tool will infer it as a block RAM on FPGA, which has a latency of 1 cycle.
+    // This output register effectively IS the IF/ID instruction register.
+    always @(posedge clk) begin
+        if (!rst_n) begin
+            // Reset to NOP so no X/garbage instruction leaks into ID when reset is released
+            inst <= 32'h00000013;
+        end else if (!stall) begin
+            // Chop the lowest 2 bits to get the word-aligned address index
+            // Same as the data memory, because instructions are also word-aligned 
+            // and we want to index by instruction number (like: 1,2,3...), not byte address.
+            inst <= rom[pc_addr[31:2]];
+        end
+
+        // Note: this register must be frozen on stall together with the PC.
+        // Because of the 1-cycle BRAM latency the PC is always one fetch AHEAD
+        // of the instruction sitting in ID. If this register kept loading
+        // rom[pc] during a stall, the stalled instruction in ID would be
+        // overwritten by the NEXT instruction (and that one would then be
+        // executed twice after the stall).
+    end
 endmodule
+

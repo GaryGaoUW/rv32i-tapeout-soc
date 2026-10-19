@@ -15,16 +15,16 @@ bool load_bin(Vcore_top* top, const char* filename){
 
     // Initialize ROM (fill NOP: 0x00000013) and RAM (fill 0)
     for (int i = 0; i < 1024; i++) {
-        top->rootp->core_top__DOT__u_mem__DOT__rom[i]  = 0x00000013;
-        top->rootp->core_top__DOT__u_dmem__DOT__ram[i] = 0x00000000;
+        top->rootp->core_top__DOT__u_if_stage__DOT__u_inst_mem__DOT__rom[i]  = 0x00000013;
+        top->rootp->core_top__DOT__u_mem_stage__DOT__u_data_mem__DOT__ram[i] = 0x00000000;
     }
 
     // Load binary into ROM and RAM
     uint32_t word = 0;
     int idx = 0;
     while(fread(&word, sizeof(uint32_t), 1, fp) == 1 && idx < 1024){
-        top->rootp->core_top__DOT__u_mem__DOT__rom[idx]  = word;
-        top->rootp->core_top__DOT__u_dmem__DOT__ram[idx] = word;
+        top->rootp->core_top__DOT__u_if_stage__DOT__u_inst_mem__DOT__rom[idx]  = word;
+        top->rootp->core_top__DOT__u_mem_stage__DOT__u_data_mem__DOT__ram[idx] = word;
         idx++;
     }
 
@@ -69,25 +69,41 @@ int main(int argc, char** argv) {
     }
 
     uint32_t prev_pc = 0xFFFFFFFF;
-
+    int same_pc_count = 0;
+    int drain_cycles = -1;
     bool halted = false;
+
     for(int i=0; i<MAX_CYCLES; i++){
         p_top->clk = 0; p_top->eval(); 
         tfp->dump(sim_time++);
 
-        bool is_halt = (prev_pc == p_top->pc_wire) || (p_top->inst_wire == 0x00000073);
-        if(is_halt){
-            printf(">>> Simulation finished at pc=%08x (cycle %d)\n", p_top->pc_wire, i);
-            halted = true;
-            break;
+        // Detect termination: ecall (0x00000073) or self-loop
+        bool is_ecall = (p_top->inst_wire == 0x00000073);
+        if (p_top->pc_wire == prev_pc && p_top->pc_wire != 0) {
+            same_pc_count++;
+        } else {
+            same_pc_count = 0;
         }
 
-        if(p_top->reg_wen && p_top->rd != 0){
-            printf("cyc %3d | pc=%08x | inst=%08x | x%-2d <= %08x\n",
+        if (drain_cycles < 0 && (is_ecall || same_pc_count >= 5)) {
+            drain_cycles = 10; // Allow 10 cycles for remaining pipeline stages to commit
+        }
+
+        if (drain_cycles > 0) {
+            drain_cycles--;
+            if (drain_cycles == 0) {
+                printf(">>> Simulation finished at pc=%08x (cycle %d)\n", p_top->pc_wire, i);
+                halted = true;
+                break;
+            }
+        }
+
+        if(p_top->dbg_wb_reg_wen && p_top->dbg_wb_rd != 0){
+            printf("cyc %3d | wb_pc=%08x | inst=%08x | x%-2d <= %08x\n",
                 i+1, 
-                p_top->pc_wire, 
+                p_top->dbg_wb_pc, 
                 p_top->inst_wire, 
-                p_top->rd, 
+                p_top->dbg_wb_rd, 
                 p_top->wb_data
             );
         }
@@ -105,8 +121,8 @@ int main(int argc, char** argv) {
     }
 
     // Check x10 (a0) and x3 (gp) for test result
-    uint32_t a0 = p_top->rootp->core_top__DOT__u_id__DOT__u_regfile__DOT__regs[10];
-    uint32_t gp = p_top->rootp->core_top__DOT__u_id__DOT__u_regfile__DOT__regs[3];
+    uint32_t a0 = p_top->rootp->core_top__DOT__u_id_stage__DOT__u_regfile__DOT__regs[10];
+    uint32_t gp = p_top->rootp->core_top__DOT__u_id_stage__DOT__u_regfile__DOT__regs[3];
     int test_result = 0;
     if (!halted) {
         printf("\033[1;31m[TEST TIMEOUT]\033[0m Simulation exceeded MAX_CYCLES (%d)\n", MAX_CYCLES);

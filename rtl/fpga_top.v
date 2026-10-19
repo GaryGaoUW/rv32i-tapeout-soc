@@ -26,15 +26,16 @@ module fpga_top (
     output [3:0] debug_pc
 );
 
-    wire [31:0] internal_pc;
+    wire [31:0] alu_res;
 
     core_top u_cpu (
         .clk    (i_clk_25m),
         .rst_n  (i_rst_n),
-        .alu_res(internal_pc)
+        .alu_res(alu_res)
     );
 
-    // Route internal PC bits [5:2] to debug output pins
-    assign debug_pc = internal_pc[5:2];
+    // Route four spread-out ALU-result bits to output pins for quick debug
+    // visibility (and to keep the core from being optimized away in synthesis).
+    assign debug_pc = {alu_res[31], alu_res[21], alu_res[11], alu_res[1]};
 
 endmodule
