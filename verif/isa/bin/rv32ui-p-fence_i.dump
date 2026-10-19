@@ -1,0 +1,91 @@
+
+bin/rv32ui-p-fence_i.elf:     file format elf32-littleriscv
+
+
+Disassembly of section .text.init:
+
+00000000 <_start>:
+   0:	00000193          	li	gp,0
+   4:	06f00693          	li	a3,111
+   8:	0d001503          	lh	a0,208(zero) # d0 <insn>
+   c:	0d201583          	lh	a1,210(zero) # d2 <insn+0x2>
+  10:	00000013          	nop
+  14:	00000013          	nop
+  18:	00000013          	nop
+  1c:	00000013          	nop
+  20:	00000013          	nop
+  24:	00000013          	nop
+  28:	00000013          	nop
+  2c:	00000013          	nop
+  30:	00000013          	nop
+  34:	00000013          	nop
+  38:	00000013          	nop
+  3c:	00000013          	nop
+  40:	0ca01a23          	sh	a0,212(zero) # d4 <insn+0x4>
+  44:	0cb01b23          	sh	a1,214(zero) # d6 <insn+0x6>
+  48:	0000100f          	fence.i
+  4c:	0d400793          	li	a5,212
+  50:	00078367          	jalr	t1,a5
+
+00000054 <test_2>:
+  54:	00200193          	li	gp,2
+  58:	00000013          	nop
+  5c:	1bc00393          	li	t2,444
+  60:	02769e63          	bne	a3,t2,9c <fail>
+  64:	06400713          	li	a4,100
+  68:	fff70713          	addi	a4,a4,-1
+  6c:	fe071ee3          	bnez	a4,68 <test_2+0x14>
+  70:	0ca01e23          	sh	a0,220(zero) # dc <insn+0xc>
+  74:	0cb01f23          	sh	a1,222(zero) # de <insn+0xe>
+  78:	0000100f          	fence.i
+  7c:	00000013          	nop
+  80:	0dc00793          	li	a5,220
+  84:	00078367          	jalr	t1,a5
+
+00000088 <test_3>:
+  88:	00300193          	li	gp,3
+  8c:	00000013          	nop
+  90:	30900393          	li	t2,777
+  94:	00769463          	bne	a3,t2,9c <fail>
+  98:	00301863          	bne	zero,gp,a8 <pass>
+
+0000009c <fail>:
+  9c:	00100513          	li	a0,1
+  a0:	00000073          	ecall
+  a4:	0000006f          	j	a4 <fail+0x8>
+
+000000a8 <pass>:
+  a8:	00000513          	li	a0,0
+  ac:	00000073          	ecall
+  b0:	0000006f          	j	b0 <pass+0x8>
+	...
+
+Disassembly of section .data:
+
+000000d0 <insn>:
+  d0:	14d68693          	addi	a3,a3,333
+  d4:	0de68693          	addi	a3,a3,222
+  d8:	000307e7          	jalr	a5,t1
+  dc:	22b68693          	addi	a3,a3,555
+  e0:	000307e7          	jalr	a5,t1
+
+Disassembly of section .riscv.attributes:
+
+00000000 <.riscv.attributes>:
+   0:	2541                	.insn	2, 0x2541
+   2:	0000                	.insn	2, 0x
+   4:	7200                	.insn	2, 0x7200
+   6:	7369                	.insn	2, 0x7369
+   8:	01007663          	bgeu	zero,a6,14 <_start+0x14>
+   c:	0000001b          	.insn	4, 0x001b
+  10:	7205                	.insn	2, 0x7205
+  12:	3376                	.insn	2, 0x3376
+  14:	6932                	.insn	2, 0x6932
+  16:	7032                	.insn	2, 0x7032
+  18:	5f31                	.insn	2, 0x5f31
+  1a:	697a                	.insn	2, 0x697a
+  1c:	6566                	.insn	2, 0x6566
+  1e:	636e                	.insn	2, 0x636e
+  20:	6965                	.insn	2, 0x6965
+  22:	7032                	.insn	2, 0x7032
+  24:	0030                	.insn	2, 0x0030
