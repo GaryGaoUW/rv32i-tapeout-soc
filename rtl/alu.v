@@ -21,30 +21,30 @@
 
 
 module alu (
-    input [31:0] op1,
-    input [31:0] op2,
-    input [3:0] alu_sel,
-    output reg [31:0] alu_res
+    input [31:0] OP1,
+    input [31:0] OP2,
+    input [3:0] ALU_SEL,
+    output reg [31:0] ALU_RES
 );
 
     always @(*) begin
-        case (alu_sel)
-            4'b0000: alu_res = op1 + op2;  // add, addi (lw, sw, auipc, jal, jalr)
-            4'b1000: alu_res = op1 - op2;  // sub
+        case (ALU_SEL)
+            4'b0000: ALU_RES = OP1 + OP2;  // add, addi (lw, sw, auipc, jal, jalr)
+            4'b1000: ALU_RES = OP1 - OP2;  // sub
 
-            4'b0001: alu_res = op1 << op2[4:0];  // sll, slli
-            4'b0101: alu_res = op1 >> op2[4:0];  // srl, srli
-            4'b1101: alu_res = $signed(op1) >>> op2[4:0];  // sra, srai
+            4'b0001: ALU_RES = OP1 << OP2[4:0];  // sll, slli
+            4'b0101: ALU_RES = OP1 >> OP2[4:0];  // srl, srli
+            4'b1101: ALU_RES = $signed(OP1) >>> OP2[4:0];  // sra, srai
 
-            4'b0010: alu_res = $signed(op1) < $signed(op2) ? 32'b1 : 32'b0;  // slt, slti
-            4'b0011: alu_res = op1 < op2 ? 32'b1 : 32'b0;  // sltu, sltiu
+            4'b0010: ALU_RES = $signed(OP1) < $signed(OP2) ? 32'b1 : 32'b0;  // slt, slti
+            4'b0011: ALU_RES = OP1 < OP2 ? 32'b1 : 32'b0;  // sltu, sltiu
 
-            4'b0111: alu_res = op1 & op2;  // and, andi
-            4'b0110: alu_res = op1 | op2;  // or, ori
-            4'b0100: alu_res = op1 ^ op2;  // xor, xori
+            4'b0111: ALU_RES = OP1 & OP2;  // and, andi
+            4'b0110: ALU_RES = OP1 | OP2;  // or, ori
+            4'b0100: ALU_RES = OP1 ^ OP2;  // xor, xori
 
-            4'b1111: alu_res = op2;  // Pass B for lui
-            default: alu_res = 32'h00000000;
+            4'b1111: ALU_RES = OP2;  // Pass B for lui
+            default: ALU_RES = 32'h00000000;
         endcase
     end
 endmodule

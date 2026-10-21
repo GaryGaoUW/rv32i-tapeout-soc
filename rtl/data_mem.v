@@ -21,11 +21,11 @@
 
 
 module data_mem (
-    input clk,
-    input [3:0] we,
-    input [31:0] addr,
-    input [31:0] wdata,
-    output reg [31:0] rdata
+    input CLK,
+    input [3:0] WE,
+    input [31:0] ADDR,
+    input [31:0] WDATA,
+    output reg [31:0] RDATA
 );
 
     // Use ram_syle = "block" to infer block RAM on FPGA
@@ -40,24 +40,24 @@ module data_mem (
     end
 
     // Write logic with byte enables
-    // we[0] controls byte 0 (bits 7:0), we[1] controls byte 1 (bits 15:8), etc.
-    // This allows for byte, half-word, and word writes based on the write Enable(we) signal.
-    wire [9:0] ram_addr = addr[11:2];
-    always @(posedge clk) begin
+    // WE[0] controls byte 0 (bits 7:0), WE[1] controls byte 1 (bits 15:8), etc.
+    // This allows for byte, half-word, and word writes based on the write Enable(WE) signal.
+    wire [9:0] ram_addr = ADDR[11:2];
+    always @(posedge CLK) begin
 
-        if (we[0]) ram[ram_addr][7:0] <= wdata[7:0];
-        if (we[1]) ram[ram_addr][15:8] <= wdata[15:8];
-        if (we[2]) ram[ram_addr][23:16] <= wdata[23:16];
-        if (we[3]) ram[ram_addr][31:24] <= wdata[31:24];
+        if (WE[0]) ram[ram_addr][7:0] <= WDATA[7:0];
+        if (WE[1]) ram[ram_addr][15:8] <= WDATA[15:8];
+        if (WE[2]) ram[ram_addr][23:16] <= WDATA[23:16];
+        if (WE[3]) ram[ram_addr][31:24] <= WDATA[31:24];
 
         // Synchronous read (1 clock cycle latency)
-        rdata <= ram[ram_addr];
+        RDATA <= ram[ram_addr];
 
         // Note 1:
         // Chop the lowest 2 bits to get the word-aligned address index
         // Because ram is in integer index (like 1,2,3...), means number/index of the instructions
-        // but addr is the word-addressable (32 bits = 4 bytes), means the actual byte address
-        // so we have to divide addr by 4, same as addr[31:2].
+        // but ADDR is the word-addressable (32 bits = 4 bytes), means the actual byte address
+        // so we have to divide ADDR by 4, same as ADDR[31:2].
 
         // Note 2:
         // With non-blocking assignments in the same always block, a same-cycle
@@ -67,7 +67,7 @@ module data_mem (
         // one full cycle before the load's read data is registered.
 
         // Note 3:
-        // Because rdata is registered (BRAM behavior), the read data belongs to
+        // Because RDATA is registered (BRAM behavior), the read data belongs to
         // the address presented in the PREVIOUS cycle, i.e. the load instruction
         // that has meanwhile moved on to WB. That's why the load byte/half-word
         // extraction is done in the WB stage with the load's own registered

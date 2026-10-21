@@ -47,25 +47,25 @@ int main(int argc, char** argv) {
     tfp->open("wave.vcd");
     uint64_t sim_time = 0;
 
-    // 4. Reset: hold rst_n = 0 for 10 cycles, then release
+    // 4. Reset: hold RST_N = 0 for 10 cycles, then release
     for(int i = 0; i<10; i++){
-        p_top->rst_n = 0;
-        p_top->clk = 0; p_top->eval(); 
+        p_top->RST_N = 0;
+        p_top->CLK = 0; p_top->eval(); 
         tfp->dump(sim_time++);
-        p_top->clk = 1; p_top->eval(); 
+        p_top->CLK = 1; p_top->eval(); 
         tfp->dump(sim_time++);
     }
-    p_top->rst_n = 1;
+    p_top->RST_N = 1;
 
     if (argc > 1) {
         if (!load_bin(p_top.get(), argv[1])) {
             return 1;
         }
         // Pulse reset for 1 cycle so PC=0 samples freshly loaded rom[0]
-        p_top->rst_n = 0;
-        p_top->clk = 0; p_top->eval();
-        p_top->clk = 1; p_top->eval();
-        p_top->rst_n = 1;
+        p_top->RST_N = 0;
+        p_top->CLK = 0; p_top->eval();
+        p_top->CLK = 1; p_top->eval();
+        p_top->RST_N = 1;
     }
 
     uint32_t prev_pc = 0xFFFFFFFF;
@@ -74,12 +74,12 @@ int main(int argc, char** argv) {
     bool halted = false;
 
     for(int i=0; i<MAX_CYCLES; i++){
-        p_top->clk = 0; p_top->eval(); 
+        p_top->CLK = 0; p_top->eval(); 
         tfp->dump(sim_time++);
 
         // Detect termination: ecall (0x00000073) or self-loop
-        bool is_ecall = (p_top->inst_wire == 0x00000073);
-        if (p_top->pc_wire == prev_pc && p_top->pc_wire != 0) {
+        bool is_ecall = (p_top->INST_WIRE == 0x00000073);
+        if (p_top->PC_WIRE == prev_pc && p_top->PC_WIRE != 0) {
             same_pc_count++;
         } else {
             same_pc_count = 0;
@@ -92,31 +92,31 @@ int main(int argc, char** argv) {
         if (drain_cycles > 0) {
             drain_cycles--;
             if (drain_cycles == 0) {
-                printf(">>> Simulation finished at pc=%08x (cycle %d)\n", p_top->pc_wire, i);
+                printf(">>> Simulation finished at pc=%08x (cycle %d)\n", p_top->PC_WIRE, i);
                 halted = true;
                 break;
             }
         }
 
-        if(p_top->dbg_wb_reg_wen && p_top->dbg_wb_rd != 0){
+        if(p_top->DBG_WB_REG_WEN && p_top->DBG_WB_RD != 0){
             printf("cyc %3d | wb_pc=%08x | inst=%08x | x%-2d <= %08x\n",
                 i+1, 
-                p_top->dbg_wb_pc, 
-                p_top->inst_wire, 
-                p_top->dbg_wb_rd, 
-                p_top->wb_data
+                p_top->DBG_WB_PC, 
+                p_top->INST_WIRE, 
+                p_top->DBG_WB_RD, 
+                p_top->WB_DATA
             );
         }
         else{
             printf("cyc %3d | pc=%08x | inst=%08x | (no regfile write)\n",
                 i+1, 
-                p_top->pc_wire, 
-                p_top->inst_wire
+                p_top->PC_WIRE, 
+                p_top->INST_WIRE
             );
         }
 
-        prev_pc = p_top->pc_wire;
-        p_top->clk = 1; p_top->eval(); 
+        prev_pc = p_top->PC_WIRE;
+        p_top->CLK = 1; p_top->eval(); 
         tfp->dump(sim_time++);
     }
 

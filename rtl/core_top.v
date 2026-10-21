@@ -21,50 +21,50 @@
 
 
 module core_top (
-    input clk,
-    input rst_n,
+    input CLK,
+    input RST_N,
 
     // Basic outputs for simulation
-    output [31:0] pc_wire,
-    output [31:0] inst_wire,
-    output [31:0] alu_res,
-    output [31:0] mem_rdata,
-    output [31:0] wb_data,
+    output [31:0] PC_WIRE,
+    output [31:0] INST_WIRE,
+    output [31:0] ALU_RES,
+    output [31:0] MEM_RDATA,
+    output [31:0] WB_DATA,
 
     // Stage-level debug outputs for pipeline tracing
-    output dbg_flush,
-    output dbg_stall,
+    output DBG_FLUSH,
+    output DBG_STALL,
 
-    output        dbg_if_pc_sel,
-    output [31:0] dbg_if_jump_addr,
+    output        DBG_IF_PC_SEL,
+    output [31:0] DBG_IF_JUMP_ADDR,
 
-    output [31:0] dbg_id_pc,
-    output [31:0] dbg_id_inst,
-    output [ 6:0] dbg_id_opcode,
-    output [ 4:0] dbg_id_rd,
-    output [ 2:0] dbg_id_funct3,
-    output        dbg_id_reg_wen,
-    output [31:0] dbg_id_rdata1,
-    output [31:0] dbg_id_rdata2,
-    output [31:0] dbg_id_imm,
+    output [31:0] DBG_ID_PC,
+    output [31:0] DBG_ID_INST,
+    output [ 6:0] DBG_ID_OPCODE,
+    output [ 4:0] DBG_ID_RD,
+    output [ 2:0] DBG_ID_FUNCT3,
+    output        DBG_ID_REG_WEN,
+    output [31:0] DBG_ID_RDATA1,
+    output [31:0] DBG_ID_RDATA2,
+    output [31:0] DBG_ID_IMM,
 
-    output [31:0] dbg_ex_pc,
-    output [31:0] dbg_ex_alu_res,
-    output [ 4:0] dbg_ex_rd,
-    output        dbg_ex_reg_wen,
-    output [ 1:0] dbg_ex_wb_sel,
+    output [31:0] DBG_EX_PC,
+    output [31:0] DBG_EX_ALU_RES,
+    output [ 4:0] DBG_EX_RD,
+    output        DBG_EX_REG_WEN,
+    output [ 1:0] DBG_EX_WB_SEL,
 
-    output [31:0] dbg_mem_pc,
-    output [31:0] dbg_mem_alu_res,
-    output [ 4:0] dbg_mem_rd,
-    output        dbg_mem_reg_wen,
-    output [ 1:0] dbg_mem_wb_sel,
-    output        dbg_mem_rw,
+    output [31:0] DBG_MEM_PC,
+    output [31:0] DBG_MEM_ALU_RES,
+    output [ 4:0] DBG_MEM_RD,
+    output        DBG_MEM_REG_WEN,
+    output [ 1:0] DBG_MEM_WB_SEL,
+    output        DBG_MEM_RW,
 
-    output [31:0] dbg_wb_pc,
-    output [ 4:0] dbg_wb_rd,
-    output        dbg_wb_reg_wen,
-    output [ 1:0] dbg_wb_wb_sel
+    output [31:0] DBG_WB_PC,
+    output [ 4:0] DBG_WB_RD,
+    output        DBG_WB_REG_WEN,
+    output [ 1:0] DBG_WB_WB_SEL
 );
 
     wire        if_pc_sel;
@@ -83,24 +83,24 @@ module core_top (
     wire        stall;
 
     if_stage u_if_stage (
-        .clk           (clk),
-        .rst_n         (rst_n),
-        .if_pc_sel_i   (if_pc_sel),
-        .if_jump_addr_i(if_jump_addr),
-        .if_stall_i    (stall),
-        .if_pc_o       (if_pc),
-        .if_inst_o     (if_inst)
+        .CLK           (CLK),
+        .RST_N         (RST_N),
+        .IF_PC_SEL_I   (if_pc_sel),
+        .IF_JUMP_ADDR_I(if_jump_addr),
+        .IF_STALL_I    (stall),
+        .IF_PC_O       (if_pc),
+        .IF_INST_O     (if_inst)
     );
     pipe_if_id u_pipe_if_id (
-        .clk  (clk),
-        .rst_n(rst_n),
-        .flush(flush),
-        .stall(stall),
+        .CLK  (CLK),
+        .RST_N(RST_N),
+        .FLUSH(flush),
+        .STALL(stall),
 
-        .if_pc_i  (if_pc),
-        .if_inst_i(if_inst),
-        .id_pc_o  (id_pc),
-        .id_inst_o(id_inst)
+        .IF_PC_I  (if_pc),
+        .IF_INST_I(if_inst),
+        .ID_PC_O  (id_pc),
+        .ID_INST_O(id_inst)
     );
 
     wire [ 6:0] id_opcode;
@@ -139,86 +139,86 @@ module core_top (
     wire [ 4:0] ex_raddr2;
 
     id_stage u_id_stage (
-        .clk      (clk),
-        .rst_n    (rst_n),
-        .id_inst_i(id_inst),
+        .CLK      (CLK),
+        .RST_N    (RST_N),
+        .ID_INST_I(id_inst),
 
         // From WriteBack Stage: 
-        .wb_wen_i  (wb_reg_wen),
-        .wb_waddr_i(wb_rd),
-        .wb_wdata_i(wb_data),
+        .WB_WEN_I  (wb_reg_wen),
+        .WB_WADDR_I(wb_rd),
+        .WB_WDATA_I(WB_DATA),
 
         // Outputs for internal wireing and forwarding in top
-        .id_opcode_o(id_opcode),
-        .id_rd_o    (id_rd),
-        .id_rdata1_o(id_rdata1),
-        .id_rdata2_o(id_rdata2),
-        .id_imm_o   (id_imm),
+        .ID_OPCODE_O(id_opcode),
+        .ID_RD_O    (id_rd),
+        .ID_RDATA1_O(id_rdata1),
+        .ID_RDATA2_O(id_rdata2),
+        .ID_IMM_O   (id_imm),
 
         // To Control Logic and ID/EX Pipeline Register
-        .id_reg_wen_o(id_reg_wen),
-        .id_a_sel_o  (id_a_sel),
-        .id_b_sel_o  (id_b_sel),
-        .id_alu_sel_o(id_alu_sel),
-        .id_mem_rw_o (id_mem_rw),
-        .id_wb_sel_o (id_wb_sel),
+        .ID_REG_WEN_O(id_reg_wen),
+        .ID_A_SEL_O  (id_a_sel),
+        .ID_B_SEL_O  (id_b_sel),
+        .ID_ALU_SEL_O(id_alu_sel),
+        .ID_MEM_RW_O (id_mem_rw),
+        .ID_WB_SEL_O (id_wb_sel),
 
         // For Branch and Jump in AlU/ EX Stage
-        .id_is_jump_o  (id_is_jump),
-        .id_is_branch_o(id_is_branch),
-        .id_funct3_o   (id_funct3),
+        .ID_IS_JUMP_O  (id_is_jump),
+        .ID_IS_BRANCH_O(id_is_branch),
+        .ID_FUNCT3_O   (id_funct3),
 
         // forwarding signals
-        .id_raddr1_o(id_raddr1),
-        .id_raddr2_o(id_raddr2)
+        .ID_RADDR1_O(id_raddr1),
+        .ID_RADDR2_O(id_raddr2)
     );
 
     pipe_id_ex u_pipe_id_ex (
-        // Every pipeline register needs clk, rst_n, flush and stall
-        .clk(clk),
-        .rst_n(rst_n),
-        .flush(flush || stall),   // Flush the pipeline when there's a branch taken or jump, also flush when stalling to avoid executing wrong instructions
-        .stall(1'b0),  // No stall for ID/EX, stalling happens in IF and EX stage
+        // Every pipeline register needs CLK, RST_N, FLUSH and STALL
+        .CLK(CLK),
+        .RST_N(RST_N),
+        .FLUSH(flush || stall),   // Flush the pipeline when there's a branch taken or jump, also flush when stalling to avoid executing wrong instructions
+        .STALL(1'b0),  // No stall for ID/EX, stalling happens in IF and EX stage
 
         // Information from ID stage for ALU to use in EX stage
-        .id_pc_i    (id_pc),
-        .id_rdata1_i(id_rdata1),
-        .id_rdata2_i(id_rdata2),
-        .id_imm_i   (id_imm),
+        .ID_PC_I    (id_pc),
+        .ID_RDATA1_I(id_rdata1),
+        .ID_RDATA2_I(id_rdata2),
+        .ID_IMM_I   (id_imm),
 
-        .ex_pc_o    (ex_pc),
-        .ex_rdata1_o(ex_rdata1),
-        .ex_rdata2_o(ex_rdata2),
-        .ex_imm_o   (ex_imm),
+        .EX_PC_O    (ex_pc),
+        .EX_RDATA1_O(ex_rdata1),
+        .EX_RDATA2_O(ex_rdata2),
+        .EX_IMM_O   (ex_imm),
 
         // Control signals from ID stage to EX stage
-        .id_a_sel_i    (id_a_sel),
-        .id_b_sel_i    (id_b_sel),
-        .id_alu_sel_i  (id_alu_sel),
-        .id_mem_rw_i   (id_mem_rw),
-        .id_reg_wen_i  (id_reg_wen),
-        .id_rd_i       (id_rd),
-        .id_wb_sel_i   (id_wb_sel),
-        .id_is_jump_i  (id_is_jump),
-        .id_is_branch_i(id_is_branch),
-        .id_funct3_i   (id_funct3),
+        .ID_A_SEL_I    (id_a_sel),
+        .ID_B_SEL_I    (id_b_sel),
+        .ID_ALU_SEL_I  (id_alu_sel),
+        .ID_MEM_RW_I   (id_mem_rw),
+        .ID_REG_WEN_I  (id_reg_wen),
+        .ID_RD_I       (id_rd),
+        .ID_WB_SEL_I   (id_wb_sel),
+        .ID_IS_JUMP_I  (id_is_jump),
+        .ID_IS_BRANCH_I(id_is_branch),
+        .ID_FUNCT3_I   (id_funct3),
 
-        .ex_a_sel_o    (ex_a_sel),
-        .ex_b_sel_o    (ex_b_sel),
-        .ex_alu_sel_o  (ex_alu_sel),
-        .ex_mem_rw_o   (ex_mem_rw),
-        .ex_reg_wen_o  (ex_reg_wen),
-        .ex_rd_o       (ex_rd),
-        .ex_wb_sel_o   (ex_wb_sel),
-        .ex_is_jump_o  (ex_is_jump),
-        .ex_is_branch_o(ex_is_branch),
-        .ex_funct3_o   (ex_funct3),
+        .EX_A_SEL_O    (ex_a_sel),
+        .EX_B_SEL_O    (ex_b_sel),
+        .EX_ALU_SEL_O  (ex_alu_sel),
+        .EX_MEM_RW_O   (ex_mem_rw),
+        .EX_REG_WEN_O  (ex_reg_wen),
+        .EX_RD_O       (ex_rd),
+        .EX_WB_SEL_O   (ex_wb_sel),
+        .EX_IS_JUMP_O  (ex_is_jump),
+        .EX_IS_BRANCH_O(ex_is_branch),
+        .EX_FUNCT3_O   (ex_funct3),
 
         // forwarding signals
-        .id_raddr1_i(id_raddr1),
-        .id_raddr2_i(id_raddr2),
-        .ex_raddr1_o(ex_raddr1),
-        .ex_raddr2_o(ex_raddr2)
+        .ID_RADDR1_I(id_raddr1),
+        .ID_RADDR2_I(id_raddr2),
+        .EX_RADDR1_O(ex_raddr1),
+        .EX_RADDR2_O(ex_raddr2)
     );
 
 
@@ -244,61 +244,61 @@ module core_top (
 
     ex_stage u_ex_stage (
         // Inputs from the ID/EX pipeline register
-        .ex_pc_i    (ex_pc),      // pass to WB
-        .ex_rdata1_i(ex_rdata1),  // used for ALU op1 and branch comp
-        .ex_rdata2_i(ex_rdata2),  // used for ALU op2 and branch comp
-        .ex_imm_i   (ex_imm),     // used for ALU op2
+        .EX_PC_I    (ex_pc),      // pass to WB
+        .EX_RDATA1_I(ex_rdata1),  // used for ALU op1 and branch comp
+        .EX_RDATA2_I(ex_rdata2),  // used for ALU op2 and branch comp
+        .EX_IMM_I   (ex_imm),     // used for ALU op2
 
-        .ex_a_sel_i    (ex_a_sel),      // used for ALU op1 selection
-        .ex_b_sel_i    (ex_b_sel),      // used for ALU op2 selection
-        .ex_alu_sel_i  (ex_alu_sel),    // used for ALU operation selection
-        .ex_is_jump_i  (ex_is_jump),    // used to determine pc_sel in IF stage
-        .ex_is_branch_i(ex_is_branch),  // used to determine pc_sel in IF stage
-        .ex_funct3_i   (ex_funct3),     // pass to M and used for branch comp
+        .EX_A_SEL_I    (ex_a_sel),      // used for ALU op1 selection
+        .EX_B_SEL_I    (ex_b_sel),      // used for ALU op2 selection
+        .EX_ALU_SEL_I  (ex_alu_sel),    // used for ALU operation selection
+        .EX_IS_JUMP_I  (ex_is_jump),    // used to determine pc_sel in IF stage
+        .EX_IS_BRANCH_I(ex_is_branch),  // used to determine pc_sel in IF stage
+        .EX_FUNCT3_I   (ex_funct3),     // pass to M and used for branch comp
 
         // Outputs to MEM stage (New signals)
-        .ex_alu_res_o(ex_alu_res),
-        .ex_wdata_o  (ex_wdata),
+        .EX_ALU_RES_O(ex_alu_res),
+        .EX_WDATA_O  (ex_wdata),
 
         // For Branch and Jump in IF stage
-        .if_pc_sel_o   (if_pc_sel),
-        .if_jump_addr_o(if_jump_addr),
+        .IF_PC_SEL_O   (if_pc_sel),
+        .IF_JUMP_ADDR_O(if_jump_addr),
 
         // forwarding signals
-        .ex_forward_a_sel_i    (ex_forward_a_sel),
-        .ex_forward_b_sel_i    (ex_forward_b_sel),
-        .mem_alu_res_i         (mem_alu_res),
-        .wb_data_i             (wb_data),
-        .ex_forward_wdata_sel_i(ex_forward_wdata_sel)
+        .EX_FORWARD_A_SEL_I    (ex_forward_a_sel),
+        .EX_FORWARD_B_SEL_I    (ex_forward_b_sel),
+        .MEM_ALU_RES_I         (mem_alu_res),
+        .WB_DATA_I             (WB_DATA),
+        .EX_FORWARD_WDATA_SEL_I(ex_forward_wdata_sel)
     );
 
     pipe_ex_mem u_pipe_ex_mem (
-        .clk  (clk),
-        .rst_n(rst_n),
-        .flush(1'b0),   // No flush for EX/MEM
-        .stall(1'b0),   // No stall for EX/MEM, stalling happens in IF and EX stage
+        .CLK  (CLK),
+        .RST_N(RST_N),
+        .FLUSH(1'b0),   // No flush for EX/MEM
+        .STALL(1'b0),   // No stall for EX/MEM, stalling happens in IF and EX stage
 
-        .ex_pc_i     (ex_pc),
-        .ex_wdata_i  (ex_wdata),
-        .ex_mem_rw_i (ex_mem_rw),
-        .ex_reg_wen_i(ex_reg_wen),
-        .ex_rd_i     (ex_rd),
-        .ex_wb_sel_i (ex_wb_sel),
-        .ex_alu_res_i(ex_alu_res),
-        .ex_funct3_i (ex_funct3),
+        .EX_PC_I     (ex_pc),
+        .EX_WDATA_I  (ex_wdata),
+        .EX_MEM_RW_I (ex_mem_rw),
+        .EX_REG_WEN_I(ex_reg_wen),
+        .EX_RD_I     (ex_rd),
+        .EX_WB_SEL_I (ex_wb_sel),
+        .EX_ALU_RES_I(ex_alu_res),
+        .EX_FUNCT3_I (ex_funct3),
 
-        .mem_pc_o     (mem_pc),
-        .mem_wdata_o  (mem_wdata),
-        .mem_mem_rw_o (mem_mem_rw),
-        .mem_reg_wen_o(mem_reg_wen),
-        .mem_rd_o     (mem_rd),
-        .mem_wb_sel_o (mem_wb_sel),
-        .mem_alu_res_o(mem_alu_res),
-        .mem_funct3_o (mem_funct3),
+        .MEM_PC_O     (mem_pc),
+        .MEM_WDATA_O  (mem_wdata),
+        .MEM_MEM_RW_O (mem_mem_rw),
+        .MEM_REG_WEN_O(mem_reg_wen),
+        .MEM_RD_O     (mem_rd),
+        .MEM_WB_SEL_O (mem_wb_sel),
+        .MEM_ALU_RES_O(mem_alu_res),
+        .MEM_FUNCT3_O (mem_funct3),
 
         // forwarding signals
-        .ex_raddr2_i (ex_raddr2),
-        .mem_raddr2_o(mem_raddr2)
+        .EX_RADDR2_I (ex_raddr2),
+        .MEM_RADDR2_O(mem_raddr2)
     );
 
 
@@ -309,43 +309,43 @@ module core_top (
     wire [ 2:0] wb_funct3;
 
     mem_stage u_mem_stage (
-        .clk  (clk),
-        .rst_n(rst_n),
+        .CLK  (CLK),
+        .RST_N(RST_N),
 
-        .mem_wdata_i  (mem_wdata),
-        .mem_mem_rw_i (mem_mem_rw),
-        .mem_alu_res_i(mem_alu_res),
-        .mem_funct3_i (mem_funct3),
+        .MEM_WDATA_I  (mem_wdata),
+        .MEM_MEM_RW_I (mem_mem_rw),
+        .MEM_ALU_RES_I(mem_alu_res),
+        .MEM_FUNCT3_I (mem_funct3),
 
         // Raw BRAM read data (valid one cycle later, when the load is in WB)
-        .mem_rdata_o(mem_rdata),
+        .MEM_RDATA_O(MEM_RDATA),
 
         // forwarding signals
-        .wb_data_i              (wb_data),
-        .mem_forward_wdata_sel_i(mem_forward_wdata_sel)
+        .WB_DATA_I              (WB_DATA),
+        .MEM_FORWARD_WDATA_SEL_I(mem_forward_wdata_sel)
     );
 
     pipe_mem_wb u_pipe_mem_wb (
-        .clk  (clk),
-        .rst_n(rst_n),
-        .flush(1'b0),   // No flush for MEM/WB
-        .stall(1'b0),   // No stall for EX/MEM, stalling happens in IF and EX stage
+        .CLK  (CLK),
+        .RST_N(RST_N),
+        .FLUSH(1'b0),   // No flush for MEM/WB
+        .STALL(1'b0),   // No stall for EX/MEM, stalling happens in IF and EX stage
 
-        .mem_pc_i     (mem_pc),
-        .mem_alu_res_i(mem_alu_res),
-        .mem_rdata_i  (mem_rdata),
-        .mem_reg_wen_i(mem_reg_wen),
-        .mem_rd_i     (mem_rd),
-        .mem_wb_sel_i (mem_wb_sel),
-        .mem_funct3_i (mem_funct3),
+        .MEM_PC_I     (mem_pc),
+        .MEM_ALU_RES_I(mem_alu_res),
+        .MEM_RDATA_I  (MEM_RDATA),
+        .MEM_REG_WEN_I(mem_reg_wen),
+        .MEM_RD_I     (mem_rd),
+        .MEM_WB_SEL_I (mem_wb_sel),
+        .MEM_FUNCT3_I (mem_funct3),
 
-        .wb_pc_o     (wb_pc),
-        .wb_alu_res_o(wb_alu_res),
-        .wb_rdata_o  (wb_rdata),
-        .wb_reg_wen_o(wb_reg_wen),
-        .wb_rd_o     (wb_rd),
-        .wb_wb_sel_o (wb_wb_sel),
-        .wb_funct3_o (wb_funct3)
+        .WB_PC_O     (wb_pc),
+        .WB_ALU_RES_O(wb_alu_res),
+        .WB_RDATA_O  (wb_rdata),
+        .WB_REG_WEN_O(wb_reg_wen),
+        .WB_RD_O     (wb_rd),
+        .WB_WB_SEL_O (wb_wb_sel),
+        .WB_FUNCT3_O (wb_funct3)
     );
 
     // Load data extraction (byte/half-word slice + sign/zero extension) is done
@@ -357,84 +357,84 @@ module core_top (
     wire [31:0] wb_rdata_filtered;
 
     mem_load_control u_mem_load_control (
-        .alu_res       (wb_alu_res),
-        .rdata         (wb_rdata),
-        .is_load       (wb_is_load),
-        .funct3        (wb_funct3),
-        .rdata_filtered(wb_rdata_filtered)
+        .ALU_RES       (wb_alu_res),
+        .RDATA         (wb_rdata),
+        .IS_LOAD       (wb_is_load),
+        .FUNCT3        (wb_funct3),
+        .RDATA_FILTERED(wb_rdata_filtered)
     );
 
-    assign wb_data = (wb_wb_sel == 2'b00) ? wb_rdata_filtered : 
+    assign WB_DATA = (wb_wb_sel == 2'b00) ? wb_rdata_filtered : 
                      (wb_wb_sel == 2'b01) ? wb_alu_res   :
                      (wb_wb_sel == 2'b10) ? (wb_pc + 4) : wb_alu_res;
 
     forwarding_unit u_forwarding_unit (
-        .ex_raddr1_i  (ex_raddr1),   // ID/EX.rs1
-        .ex_raddr2_i  (ex_raddr2),   // ID/EX.rs2
-        .mem_rd_i     (mem_rd),      // EX/MEM.rd
-        .mem_reg_wen_i(mem_reg_wen), // EX/MEM.reg_wen
+        .EX_RADDR1_I  (ex_raddr1),   // ID/EX.rs1
+        .EX_RADDR2_I  (ex_raddr2),   // ID/EX.rs2
+        .MEM_RD_I     (mem_rd),      // EX/MEM.rd
+        .MEM_REG_WEN_I(mem_reg_wen), // EX/MEM.reg_wen
 
-        .wb_rd_i     (wb_rd),      // MEM/WB.rd
-        .wb_reg_wen_i(wb_reg_wen), // MEM/WB.reg_wen
+        .WB_RD_I     (wb_rd),      // MEM/WB.rd
+        .WB_REG_WEN_I(wb_reg_wen), // MEM/WB.reg_wen
 
-        .ex_forward_a_sel_o(ex_forward_a_sel),
-        .ex_forward_b_sel_o(ex_forward_b_sel),
+        .EX_FORWARD_A_SEL_O(ex_forward_a_sel),
+        .EX_FORWARD_B_SEL_O(ex_forward_b_sel),
 
-        .ex_mem_rw_i   (ex_mem_rw),
-        .ex_wdata_sel_o(ex_forward_wdata_sel),
+        .EX_MEM_RW_I   (ex_mem_rw),
+        .EX_WDATA_SEL_O(ex_forward_wdata_sel),
 
-        .mem_raddr2_i           (mem_raddr2),
-        .mem_forward_wdata_sel_o(mem_forward_wdata_sel)
+        .MEM_RADDR2_I           (mem_raddr2),
+        .MEM_FORWARD_WDATA_SEL_O(mem_forward_wdata_sel)
     );
 
     hazard_detection_unit u_hazard_detection_unit (
-        .ex_reg_wen_i(ex_reg_wen),
-        .ex_wb_sel_i (ex_wb_sel),
-        .ex_rd_i     (ex_rd),
-        .id_raddr1_i (id_raddr1),
-        .id_raddr2_i (id_raddr2),
-        .id_mem_rw_i (id_mem_rw),
+        .EX_REG_WEN_I(ex_reg_wen),
+        .EX_WB_SEL_I (ex_wb_sel),
+        .EX_RD_I     (ex_rd),
+        .ID_RADDR1_I (id_raddr1),
+        .ID_RADDR2_I (id_raddr2),
+        .ID_MEM_RW_I (id_mem_rw),
 
-        .stall_o(stall)
+        .STALL_O(stall)
     );
 
 
-    assign pc_wire = if_pc;
-    assign inst_wire = if_inst;
+    assign PC_WIRE = if_pc;
+    assign INST_WIRE = if_inst;
 
-    assign alu_res = ex_alu_res;
+    assign ALU_RES = ex_alu_res;
 
-    assign dbg_flush = flush;
-    assign dbg_stall = stall;
-    assign dbg_if_pc_sel = if_pc_sel;
-    assign dbg_if_jump_addr = if_jump_addr;
+    assign DBG_FLUSH = flush;
+    assign DBG_STALL = stall;
+    assign DBG_IF_PC_SEL = if_pc_sel;
+    assign DBG_IF_JUMP_ADDR = if_jump_addr;
 
-    assign dbg_id_pc = id_pc;
-    assign dbg_id_inst = id_inst;
-    assign dbg_id_opcode = id_opcode;
-    assign dbg_id_rd = id_rd;
-    assign dbg_id_funct3 = id_funct3;
-    assign dbg_id_reg_wen = id_reg_wen;
-    assign dbg_id_rdata1 = id_rdata1;
-    assign dbg_id_rdata2 = id_rdata2;
-    assign dbg_id_imm = id_imm;
+    assign DBG_ID_PC = id_pc;
+    assign DBG_ID_INST = id_inst;
+    assign DBG_ID_OPCODE = id_opcode;
+    assign DBG_ID_RD = id_rd;
+    assign DBG_ID_FUNCT3 = id_funct3;
+    assign DBG_ID_REG_WEN = id_reg_wen;
+    assign DBG_ID_RDATA1 = id_rdata1;
+    assign DBG_ID_RDATA2 = id_rdata2;
+    assign DBG_ID_IMM = id_imm;
 
-    assign dbg_ex_pc = ex_pc;
-    assign dbg_ex_alu_res = ex_alu_res;
-    assign dbg_ex_rd = ex_rd;
-    assign dbg_ex_reg_wen = ex_reg_wen;
-    assign dbg_ex_wb_sel = ex_wb_sel;
+    assign DBG_EX_PC = ex_pc;
+    assign DBG_EX_ALU_RES = ex_alu_res;
+    assign DBG_EX_RD = ex_rd;
+    assign DBG_EX_REG_WEN = ex_reg_wen;
+    assign DBG_EX_WB_SEL = ex_wb_sel;
 
-    assign dbg_mem_pc = mem_pc;
-    assign dbg_mem_alu_res = mem_alu_res;
-    assign dbg_mem_rd = mem_rd;
-    assign dbg_mem_reg_wen = mem_reg_wen;
-    assign dbg_mem_wb_sel = mem_wb_sel;
-    assign dbg_mem_rw = mem_mem_rw;
+    assign DBG_MEM_PC = mem_pc;
+    assign DBG_MEM_ALU_RES = mem_alu_res;
+    assign DBG_MEM_RD = mem_rd;
+    assign DBG_MEM_REG_WEN = mem_reg_wen;
+    assign DBG_MEM_WB_SEL = mem_wb_sel;
+    assign DBG_MEM_RW = mem_mem_rw;
 
-    assign dbg_wb_pc = wb_pc;
-    assign dbg_wb_rd = wb_rd;
-    assign dbg_wb_reg_wen = wb_reg_wen;
-    assign dbg_wb_wb_sel = wb_wb_sel;
+    assign DBG_WB_PC = wb_pc;
+    assign DBG_WB_RD = wb_rd;
+    assign DBG_WB_REG_WEN = wb_reg_wen;
+    assign DBG_WB_WB_SEL = wb_wb_sel;
 
 endmodule

@@ -21,105 +21,105 @@
 
 
 module pipe_id_ex (
-    // Every pipeline register needs clk, rst_n, flush and stall
-    input clk,
-    input rst_n,
-    input flush,
-    input stall,
+    // Every pipeline register needs CLK, RST_N, FLUSH and STALL
+    input CLK,
+    input RST_N,
+    input FLUSH,
+    input STALL,
 
     // Information from ID stage for ALU to use in EX stage
-    input [31:0] id_pc_i,
-    input [31:0] id_rdata1_i,
-    input [31:0] id_rdata2_i,
-    input [31:0] id_imm_i,
+    input [31:0] ID_PC_I,
+    input [31:0] ID_RDATA1_I,
+    input [31:0] ID_RDATA2_I,
+    input [31:0] ID_IMM_I,
 
-    output reg [31:0] ex_pc_o,
-    output reg [31:0] ex_rdata1_o,
-    output reg [31:0] ex_rdata2_o,
-    output reg [31:0] ex_imm_o,
+    output reg [31:0] EX_PC_O,
+    output reg [31:0] EX_RDATA1_O,
+    output reg [31:0] EX_RDATA2_O,
+    output reg [31:0] EX_IMM_O,
 
     // Control signals from ID stage to EX stage
-    input       id_a_sel_i,
-    input       id_b_sel_i,
-    input [3:0] id_alu_sel_i,
-    input       id_mem_rw_i,
-    input       id_reg_wen_i,
-    input [4:0] id_rd_i,
-    input [1:0] id_wb_sel_i,
-    input       id_is_jump_i,
-    input       id_is_branch_i,
-    input [2:0] id_funct3_i,
+    input       ID_A_SEL_I,
+    input       ID_B_SEL_I,
+    input [3:0] ID_ALU_SEL_I,
+    input       ID_MEM_RW_I,
+    input       ID_REG_WEN_I,
+    input [4:0] ID_RD_I,
+    input [1:0] ID_WB_SEL_I,
+    input       ID_IS_JUMP_I,
+    input       ID_IS_BRANCH_I,
+    input [2:0] ID_FUNCT3_I,
 
-    output reg       ex_a_sel_o,
-    output reg       ex_b_sel_o,
-    output reg [3:0] ex_alu_sel_o,
-    output reg       ex_mem_rw_o,
-    output reg       ex_reg_wen_o,
-    output reg [4:0] ex_rd_o,
-    output reg [1:0] ex_wb_sel_o,
-    output reg       ex_is_jump_o,
-    output reg       ex_is_branch_o,
-    output reg [2:0] ex_funct3_o,
+    output reg       EX_A_SEL_O,
+    output reg       EX_B_SEL_O,
+    output reg [3:0] EX_ALU_SEL_O,
+    output reg       EX_MEM_RW_O,
+    output reg       EX_REG_WEN_O,
+    output reg [4:0] EX_RD_O,
+    output reg [1:0] EX_WB_SEL_O,
+    output reg       EX_IS_JUMP_O,
+    output reg       EX_IS_BRANCH_O,
+    output reg [2:0] EX_FUNCT3_O,
 
     // forwarding signals
-    input [4:0] id_raddr1_i,
-    input [4:0] id_raddr2_i,
-    output reg [4:0] ex_raddr1_o,
-    output reg [4:0] ex_raddr2_o
+    input [4:0] ID_RADDR1_I,
+    input [4:0] ID_RADDR2_I,
+    output reg [4:0] EX_RADDR1_O,
+    output reg [4:0] EX_RADDR2_O
 );
 
-    always @(posedge clk, negedge rst_n) begin
-        if (!rst_n) begin
-            ex_pc_o <= 32'b0;
-            ex_rdata1_o <= 32'b0;
-            ex_rdata2_o <= 32'b0;
-            ex_imm_o <= 32'b0;
-            ex_a_sel_o <= 1'b0;
-            ex_b_sel_o <= 1'b0;
-            ex_alu_sel_o <= 4'b0000;
-            ex_mem_rw_o <= 1'b0;
-            ex_reg_wen_o <= 1'b0;
-            ex_rd_o <= 5'b00000;
-            ex_wb_sel_o <= 2'b01;
-            ex_is_jump_o <= 1'b0;
-            ex_is_branch_o <= 1'b0;
-            ex_funct3_o <= 3'b000;
-            ex_raddr1_o <= 5'b00000;
-            ex_raddr2_o <= 5'b00000;
-        end else if (flush) begin
-            ex_pc_o <= 32'b0;
-            ex_rdata1_o <= 32'b0;
-            ex_rdata2_o <= 32'b0;
-            ex_imm_o <= 32'b0;
-            ex_a_sel_o <= 1'b0;
-            ex_b_sel_o <= 1'b0;
-            ex_alu_sel_o <= 4'b0000;
-            ex_mem_rw_o <= 1'b0;
-            ex_reg_wen_o <= 1'b0;
-            ex_rd_o <= 5'b00000;
-            ex_wb_sel_o <= 2'b01;
-            ex_is_jump_o <= 1'b0;
-            ex_is_branch_o <= 1'b0;
-            ex_funct3_o <= 3'b000;
-            ex_raddr1_o <= 5'b00000;
-            ex_raddr2_o <= 5'b00000;
-        end else if (!stall) begin
-            ex_pc_o <= id_pc_i;
-            ex_rdata1_o <= id_rdata1_i;
-            ex_rdata2_o <= id_rdata2_i;
-            ex_imm_o <= id_imm_i;
-            ex_a_sel_o <= id_a_sel_i;
-            ex_b_sel_o <= id_b_sel_i;
-            ex_alu_sel_o <= id_alu_sel_i;
-            ex_mem_rw_o <= id_mem_rw_i;
-            ex_reg_wen_o <= id_reg_wen_i;
-            ex_rd_o <= id_rd_i;
-            ex_wb_sel_o <= id_wb_sel_i;
-            ex_is_jump_o <= id_is_jump_i;
-            ex_is_branch_o <= id_is_branch_i;
-            ex_funct3_o <= id_funct3_i;
-            ex_raddr1_o <= id_raddr1_i;
-            ex_raddr2_o <= id_raddr2_i;
+    always @(posedge CLK, negedge RST_N) begin
+        if (!RST_N) begin
+            EX_PC_O <= 32'b0;
+            EX_RDATA1_O <= 32'b0;
+            EX_RDATA2_O <= 32'b0;
+            EX_IMM_O <= 32'b0;
+            EX_A_SEL_O <= 1'b0;
+            EX_B_SEL_O <= 1'b0;
+            EX_ALU_SEL_O <= 4'b0000;
+            EX_MEM_RW_O <= 1'b0;
+            EX_REG_WEN_O <= 1'b0;
+            EX_RD_O <= 5'b00000;
+            EX_WB_SEL_O <= 2'b01;
+            EX_IS_JUMP_O <= 1'b0;
+            EX_IS_BRANCH_O <= 1'b0;
+            EX_FUNCT3_O <= 3'b000;
+            EX_RADDR1_O <= 5'b00000;
+            EX_RADDR2_O <= 5'b00000;
+        end else if (FLUSH) begin
+            EX_PC_O <= 32'b0;
+            EX_RDATA1_O <= 32'b0;
+            EX_RDATA2_O <= 32'b0;
+            EX_IMM_O <= 32'b0;
+            EX_A_SEL_O <= 1'b0;
+            EX_B_SEL_O <= 1'b0;
+            EX_ALU_SEL_O <= 4'b0000;
+            EX_MEM_RW_O <= 1'b0;
+            EX_REG_WEN_O <= 1'b0;
+            EX_RD_O <= 5'b00000;
+            EX_WB_SEL_O <= 2'b01;
+            EX_IS_JUMP_O <= 1'b0;
+            EX_IS_BRANCH_O <= 1'b0;
+            EX_FUNCT3_O <= 3'b000;
+            EX_RADDR1_O <= 5'b00000;
+            EX_RADDR2_O <= 5'b00000;
+        end else if (!STALL) begin
+            EX_PC_O <= ID_PC_I;
+            EX_RDATA1_O <= ID_RDATA1_I;
+            EX_RDATA2_O <= ID_RDATA2_I;
+            EX_IMM_O <= ID_IMM_I;
+            EX_A_SEL_O <= ID_A_SEL_I;
+            EX_B_SEL_O <= ID_B_SEL_I;
+            EX_ALU_SEL_O <= ID_ALU_SEL_I;
+            EX_MEM_RW_O <= ID_MEM_RW_I;
+            EX_REG_WEN_O <= ID_REG_WEN_I;
+            EX_RD_O <= ID_RD_I;
+            EX_WB_SEL_O <= ID_WB_SEL_I;
+            EX_IS_JUMP_O <= ID_IS_JUMP_I;
+            EX_IS_BRANCH_O <= ID_IS_BRANCH_I;
+            EX_FUNCT3_O <= ID_FUNCT3_I;
+            EX_RADDR1_O <= ID_RADDR1_I;
+            EX_RADDR2_O <= ID_RADDR2_I;
         end
     end
 

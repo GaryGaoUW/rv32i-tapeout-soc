@@ -21,65 +21,65 @@
 
 
 module pipe_ex_mem (
-    input clk,
-    input rst_n,
-    input flush,
-    input stall,
+    input CLK,
+    input RST_N,
+    input FLUSH,
+    input STALL,
 
-    input [31:0] ex_pc_i,
-    input [31:0] ex_wdata_i,
-    input ex_mem_rw_i,
-    input ex_reg_wen_i,
-    input [4:0] ex_rd_i,
-    input [1:0] ex_wb_sel_i,
-    input [31:0] ex_alu_res_i,
-    input [2:0] ex_funct3_i,
+    input [31:0] EX_PC_I,
+    input [31:0] EX_WDATA_I,
+    input EX_MEM_RW_I,
+    input EX_REG_WEN_I,
+    input [4:0] EX_RD_I,
+    input [1:0] EX_WB_SEL_I,
+    input [31:0] EX_ALU_RES_I,
+    input [2:0] EX_FUNCT3_I,
 
-    output reg [31:0] mem_pc_o,
-    output reg [31:0] mem_wdata_o,
-    output reg mem_mem_rw_o,
-    output reg mem_reg_wen_o,
-    output reg [4:0] mem_rd_o,
-    output reg [1:0] mem_wb_sel_o,
-    output reg [31:0] mem_alu_res_o,
-    output reg [2:0] mem_funct3_o,
+    output reg [31:0] MEM_PC_O,
+    output reg [31:0] MEM_WDATA_O,
+    output reg MEM_MEM_RW_O,
+    output reg MEM_REG_WEN_O,
+    output reg [4:0] MEM_RD_O,
+    output reg [1:0] MEM_WB_SEL_O,
+    output reg [31:0] MEM_ALU_RES_O,
+    output reg [2:0] MEM_FUNCT3_O,
 
     // frwarding signals
-    input [4:0] ex_raddr2_i,
-    output reg [4:0] mem_raddr2_o
+    input [4:0] EX_RADDR2_I,
+    output reg [4:0] MEM_RADDR2_O
 );
 
-    always @(posedge clk, negedge rst_n) begin
-        if (!rst_n) begin
-            mem_pc_o <= 32'b0;
-            mem_wdata_o <= 32'b0;
-            mem_mem_rw_o <= 1'b0;
-            mem_reg_wen_o <= 1'b0;
-            mem_rd_o <= 5'b00000;
-            mem_wb_sel_o <= 2'b00;
-            mem_alu_res_o <= 32'b0;
-            mem_funct3_o <= 3'b000;
-            mem_raddr2_o <= 5'b00000;
-        end else if (flush) begin
-            mem_pc_o <= 32'b0;
-            mem_wdata_o <= 32'b0;
-            mem_mem_rw_o <= 1'b0;
-            mem_reg_wen_o <= 1'b0;
-            mem_rd_o <= 5'b00000;
-            mem_wb_sel_o <= 2'b00;
-            mem_alu_res_o <= 32'b0;
-            mem_funct3_o <= 3'b000;
-            mem_raddr2_o <= 5'b00000;
-        end else if (!stall) begin
-            mem_pc_o <= ex_pc_i;
-            mem_wdata_o <= ex_wdata_i;
-            mem_mem_rw_o <= ex_mem_rw_i;
-            mem_reg_wen_o <= ex_reg_wen_i;
-            mem_rd_o <= ex_rd_i;
-            mem_wb_sel_o <= ex_wb_sel_i;
-            mem_alu_res_o <= ex_alu_res_i;
-            mem_funct3_o <= ex_funct3_i;
-            mem_raddr2_o <= ex_raddr2_i;
+    always @(posedge CLK, negedge RST_N) begin
+        if (!RST_N) begin
+            MEM_PC_O <= 32'b0;
+            MEM_WDATA_O <= 32'b0;
+            MEM_MEM_RW_O <= 1'b0;
+            MEM_REG_WEN_O <= 1'b0;
+            MEM_RD_O <= 5'b00000;
+            MEM_WB_SEL_O <= 2'b00;
+            MEM_ALU_RES_O <= 32'b0;
+            MEM_FUNCT3_O <= 3'b000;
+            MEM_RADDR2_O <= 5'b00000;
+        end else if (FLUSH) begin
+            MEM_PC_O <= 32'b0;
+            MEM_WDATA_O <= 32'b0;
+            MEM_MEM_RW_O <= 1'b0;
+            MEM_REG_WEN_O <= 1'b0;
+            MEM_RD_O <= 5'b00000;
+            MEM_WB_SEL_O <= 2'b00;
+            MEM_ALU_RES_O <= 32'b0;
+            MEM_FUNCT3_O <= 3'b000;
+            MEM_RADDR2_O <= 5'b00000;
+        end else if (!STALL) begin
+            MEM_PC_O <= EX_PC_I;
+            MEM_WDATA_O <= EX_WDATA_I;
+            MEM_MEM_RW_O <= EX_MEM_RW_I;
+            MEM_REG_WEN_O <= EX_REG_WEN_I;
+            MEM_RD_O <= EX_RD_I;
+            MEM_WB_SEL_O <= EX_WB_SEL_I;
+            MEM_ALU_RES_O <= EX_ALU_RES_I;
+            MEM_FUNCT3_O <= EX_FUNCT3_I;
+            MEM_RADDR2_O <= EX_RADDR2_I;
         end
     end
 endmodule
