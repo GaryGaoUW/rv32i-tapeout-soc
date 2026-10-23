@@ -21,22 +21,22 @@
 
 
 module branch_comp (
-    input [2:0] FUNCT3,
-    input [31:0] RDATA1,
-    input [31:0] RDATA2,
-    output reg BR_EN
+    input [2:0] funct3,
+    input [31:0] rdata1,
+    input [31:0] rdata2,
+    output reg br_en
 );
 
     always @(*) begin
-        BR_EN = 1'b0;  // By default don't jump
+        br_en = 1'b0;  // By default don't jump
 
-        case (FUNCT3)
-            3'b000: BR_EN = (RDATA1 == RDATA2);  // beq
-            3'b001: BR_EN = (RDATA1 != RDATA2);  // bne
-            3'b100: BR_EN = ($signed(RDATA1) < $signed(RDATA2));  // blt
-            3'b101: BR_EN = ($signed(RDATA1) >= $signed(RDATA2));  // bge
-            3'b110: BR_EN = (RDATA1 < RDATA2);  // bltu
-            3'b111: BR_EN = (RDATA1 >= RDATA2);  // bgeu
+        case (funct3)
+            3'b000: br_en = (rdata1 == rdata2);  // beq
+            3'b001: br_en = (rdata1 != rdata2);  // bne
+            3'b100: br_en = ($signed(rdata1) < $signed(rdata2));  // blt
+            3'b101: br_en = ($signed(rdata1) >= $signed(rdata2));  // bge
+            3'b110: br_en = (rdata1 < rdata2);  // bltu
+            3'b111: br_en = (rdata1 >= rdata2);  // bgeu
         endcase
     end
 endmodule

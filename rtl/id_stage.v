@@ -23,76 +23,76 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module id_stage (
-    input CLK,
-    input RST_N,
-    input [31:0] ID_INST_I,
+    input clk,
+    input rst_n,
+    input [31:0] id_inst_i,
 
     // From WriteBack Stage: 
-    input WB_WEN_I,
-    input [4:0] WB_WADDR_I,
-    input [31:0] WB_WDATA_I,
+    input wb_wen_i,
+    input [4:0] wb_waddr_i,
+    input [31:0] wb_wdata_i,
 
     // Outputs for internal wireing and forwarding in top
-    output [ 6:0] ID_OPCODE_O,
-    output [ 4:0] ID_RD_O,
-    output [31:0] ID_RDATA1_O,
-    output [31:0] ID_RDATA2_O,
-    output [31:0] ID_IMM_O,
+    output [ 6:0] id_opcode_o,
+    output [ 4:0] id_rd_o,
+    output [31:0] id_rdata1_o,
+    output [31:0] id_rdata2_o,
+    output [31:0] id_imm_o,
 
     // To Control Logic and ID/EX Pipeline Register
-    output       ID_REG_WEN_O,
-    output       ID_A_SEL_O,
-    output       ID_B_SEL_O,
-    output [3:0] ID_ALU_SEL_O,
-    output       ID_MEM_RW_O,
-    output [1:0] ID_WB_SEL_O,
+    output       id_reg_wen_o,
+    output       id_a_sel_o,
+    output       id_b_sel_o,
+    output [3:0] id_alu_sel_o,
+    output       id_mem_rw_o,
+    output [1:0] id_wb_sel_o,
 
     // For Branch and Jump in AlU/ EX Stage
-    output ID_IS_JUMP_O,
-    output ID_IS_BRANCH_O,
-    output [2:0] ID_FUNCT3_O,
+    output id_is_jump_o,
+    output id_is_branch_o,
+    output [2:0] id_funct3_o,
 
     // forwarding signals
-    output [4:0] ID_RADDR1_O,
-    output [4:0] ID_RADDR2_O
+    output [4:0] id_raddr1_o,
+    output [4:0] id_raddr2_o
 
 );
     // Decoding logic by bits on the ece222 slides
-    assign ID_OPCODE_O = ID_INST_I[6:0];
-    assign ID_FUNCT3_O = ID_INST_I[14:12];
-    assign ID_RD_O = ID_INST_I[11:7];
-    assign ID_RADDR1_O = ID_INST_I[19:15];
-    assign ID_RADDR2_O = ID_INST_I[24:20];
+    assign id_opcode_o = id_inst_i[6:0];
+    assign id_funct3_o = id_inst_i[14:12];
+    assign id_rd_o = id_inst_i[11:7];
+    assign id_raddr1_o = id_inst_i[19:15];
+    assign id_raddr2_o = id_inst_i[24:20];
 
     regfile u_regfile (
-        .CLK   (CLK),
-        .RST_N (RST_N),
-        .RADDR1(ID_RADDR1_O),
-        .RADDR2(ID_RADDR2_O),
-        .RDATA1(ID_RDATA1_O),
-        .RDATA2(ID_RDATA2_O),
+        .clk   (clk),
+        .rst_n (rst_n),
+        .raddr1(id_raddr1_o),
+        .raddr2(id_raddr2_o),
+        .rdata1(id_rdata1_o),
+        .rdata2(id_rdata2_o),
 
-        .WE   (WB_WEN_I),
-        .WADDR(WB_WADDR_I),
-        .WDATA(WB_WDATA_I)
+        .we   (wb_wen_i),
+        .waddr(wb_waddr_i),
+        .wdata(wb_wdata_i)
     );
 
     imm_gen u_imm_gen (
-        .INST   (ID_INST_I),
-        .IMM_SEL(ID_OPCODE_O),
-        .IMM    (ID_IMM_O)
+        .inst   (id_inst_i),
+        .imm_sel(id_opcode_o),
+        .imm    (id_imm_o)
     );
 
     control_logic u_control_logic (
-        .INST     (ID_INST_I),
-        .REG_WEN  (ID_REG_WEN_O),
-        .A_SEL    (ID_A_SEL_O),
-        .B_SEL    (ID_B_SEL_O),
-        .ALU_SEL  (ID_ALU_SEL_O),
-        .MEM_RW   (ID_MEM_RW_O),
-        .WB_SEL   (ID_WB_SEL_O),
-        .IS_JUMP  (ID_IS_JUMP_O),
-        .IS_BRANCH(ID_IS_BRANCH_O)
+        .inst     (id_inst_i),
+        .reg_wen  (id_reg_wen_o),
+        .a_sel    (id_a_sel_o),
+        .b_sel    (id_b_sel_o),
+        .alu_sel  (id_alu_sel_o),
+        .mem_rw   (id_mem_rw_o),
+        .wb_sel   (id_wb_sel_o),
+        .is_jump  (id_is_jump_o),
+        .is_branch(id_is_branch_o)
     );
 
 endmodule

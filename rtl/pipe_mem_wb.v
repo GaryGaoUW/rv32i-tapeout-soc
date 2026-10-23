@@ -21,57 +21,57 @@
 
 
 module pipe_mem_wb (
-    input CLK,
-    input RST_N,
-    input FLUSH,
-    input STALL,
+    input clk,
+    input rst_n,
+    input flush,
+    input stall,
 
-    input [31:0] MEM_PC_I,
-    input [31:0] MEM_ALU_RES_I,
-    input [31:0] MEM_RDATA_I,
-    input MEM_REG_WEN_I,
-    input [4:0] MEM_RD_I,
-    input [1:0] MEM_WB_SEL_I,
-    input [2:0] MEM_FUNCT3_I,
+    input [31:0] mem_pc_i,
+    input [31:0] mem_alu_res_i,
+    input [31:0] mem_rdata_i,
+    input mem_reg_wen_i,
+    input [4:0] mem_rd_i,
+    input [1:0] mem_wb_sel_i,
+    input [2:0] mem_funct3_i,
 
-    output reg [31:0] WB_PC_O,
-    output reg [31:0] WB_ALU_RES_O,
-    output [31:0] WB_RDATA_O,
-    output reg WB_REG_WEN_O,
-    output reg [4:0] WB_RD_O,
-    output reg [1:0] WB_WB_SEL_O,
-    output reg [2:0] WB_FUNCT3_O  // needed by the load data extraction in WB
+    output reg [31:0] wb_pc_o,
+    output reg [31:0] wb_alu_res_o,
+    output [31:0] wb_rdata_o,
+    output reg wb_reg_wen_o,
+    output reg [4:0] wb_rd_o,
+    output reg [1:0] wb_wb_sel_o,
+    output reg [2:0] wb_funct3_o  // needed by the load data extraction in WB
 );
 
-    always @(posedge CLK, negedge RST_N) begin
-        if (!RST_N) begin
-            WB_PC_O <= 32'b0;
-            WB_ALU_RES_O <= 32'b0;
-            WB_REG_WEN_O <= 1'b0;
-            WB_RD_O <= 5'b00000;
-            WB_WB_SEL_O <= 2'b00;
-            WB_FUNCT3_O <= 3'b000;
-        end else if (FLUSH) begin
-            WB_PC_O <= 32'b0;
-            WB_ALU_RES_O <= 32'b0;
-            WB_REG_WEN_O <= 1'b0;
-            WB_RD_O <= 5'b00000;
-            WB_WB_SEL_O <= 2'b00;
-            WB_FUNCT3_O <= 3'b000;
-        end else if (!STALL) begin
-            WB_PC_O <= MEM_PC_I;
-            WB_ALU_RES_O <= MEM_ALU_RES_I;
-            WB_REG_WEN_O <= MEM_REG_WEN_I;
-            WB_RD_O <= MEM_RD_I;
-            WB_WB_SEL_O <= MEM_WB_SEL_I;
-            WB_FUNCT3_O <= MEM_FUNCT3_I;
+    always @(posedge clk, negedge rst_n) begin
+        if (!rst_n) begin
+            wb_pc_o <= 32'b0;
+            wb_alu_res_o <= 32'b0;
+            wb_reg_wen_o <= 1'b0;
+            wb_rd_o <= 5'b00000;
+            wb_wb_sel_o <= 2'b00;
+            wb_funct3_o <= 3'b000;
+        end else if (flush) begin
+            wb_pc_o <= 32'b0;
+            wb_alu_res_o <= 32'b0;
+            wb_reg_wen_o <= 1'b0;
+            wb_rd_o <= 5'b00000;
+            wb_wb_sel_o <= 2'b00;
+            wb_funct3_o <= 3'b000;
+        end else if (!stall) begin
+            wb_pc_o <= mem_pc_i;
+            wb_alu_res_o <= mem_alu_res_i;
+            wb_reg_wen_o <= mem_reg_wen_i;
+            wb_rd_o <= mem_rd_i;
+            wb_wb_sel_o <= mem_wb_sel_i;
+            wb_funct3_o <= mem_funct3_i;
         end
     end
 
     // Directly pass the RAW read data to WB stage, no need to store in a register
     // because BRAM inherently delays rdata by 1 cycle, matching the MEM->WB transition perfectly.
     // The byte/half-word extraction is done in WB (core_top) with the load's own
-    // registered controls (WB_FUNCT3_O / WB_ALU_RES_O), NOT with the controls of
+    // registered controls (wb_funct3_o / wb_alu_res_o), NOT with the controls of
     // whatever instruction currently sits in MEM.
-    assign WB_RDATA_O = MEM_RDATA_I;
+    assign wb_rdata_o = mem_rdata_i;
 endmodule

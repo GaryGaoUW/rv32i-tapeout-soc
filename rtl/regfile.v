@@ -21,16 +21,16 @@
 
 
 module regfile (
-    input CLK,
-    input RST_N,
-    input [4:0] RADDR1,
-    input [4:0] RADDR2,
-    output [31:0] RDATA1,
-    output [31:0] RDATA2,
+    input clk,
+    input rst_n,
+    input [4:0] raddr1,
+    input [4:0] raddr2,
+    output [31:0] rdata1,
+    output [31:0] rdata2,
 
-    input WE,
-    input [4:0] WADDR,
-    input [31:0] WDATA
+    input we,
+    input [4:0] waddr,
+    input [31:0] wdata
 );
 
     // 32x32 register file with asynchronous (combinational) reads.
@@ -41,25 +41,25 @@ module regfile (
 
     // Internal Forwarding (Write-First): 
     // If reading the same register that is currently being written, 
-    // bypass the operation to the register file array and directly forward the WDATA to read.
-    assign RDATA1 = (RADDR1 == 5'b00000) ? 32'h00000000 : 
-                    ((WE == 1'b1) && (WADDR == RADDR1)) ? WDATA : 
-                    regs[RADDR1];
+    // bypass the operation to the register file array and directly forward the wdata to read.
+    assign rdata1 = (raddr1 == 5'b00000) ? 32'h00000000 : 
+                    ((we == 1'b1) && (waddr == raddr1)) ? wdata : 
+                    regs[raddr1];
 
-    assign RDATA2 = (RADDR2 == 5'b00000) ? 32'h00000000 : 
-                    ((WE == 1'b1) && (WADDR == RADDR2)) ? WDATA : 
-                    regs[RADDR2];
+    assign rdata2 = (raddr2 == 5'b00000) ? 32'h00000000 : 
+                    ((we == 1'b1) && (waddr == raddr2)) ? wdata : 
+                    regs[raddr2];
 
     integer i;
-    always @(posedge CLK) begin
-        if (!RST_N) begin
+    always @(posedge clk) begin
+        if (!rst_n) begin
             // On reset, initialize all registers to 0. Good to have a known state for simulation and debugging.
             for (i = 0; i < 32; i = i + 1) begin
                 regs[i] <= 32'b0;
             end
         end else begin
-            if (WE == 1'b1 && WADDR != 5'b00000) begin
-                regs[WADDR] <= WDATA;
+            if (we == 1'b1 && waddr != 5'b00000) begin
+                regs[waddr] <= wdata;
             end
         end
     end

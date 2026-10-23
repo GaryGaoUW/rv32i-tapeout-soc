@@ -21,22 +21,22 @@
 
 
 module mem_write_control (
-    input [31:0] ALU_RES,
-    input IS_STORE,
-    input [2:0] FUNCT3,
-    output reg [3:0] WRITE_CTRL
+    input [31:0] alu_res,
+    input is_store,
+    input [2:0] funct3,
+    output reg [3:0] write_ctrl
 );
 
     always @(*) begin
-        if (IS_STORE) begin
-            case (FUNCT3)
+        if (is_store) begin
+            case (funct3)
                 3'b000:
-                WRITE_CTRL = 4'b0001 << ALU_RES[1:0]; // only need the last 2 bits for offset within the word
+                write_ctrl = 4'b0001 << alu_res[1:0]; // only need the last 2 bits for offset within the word
                 3'b001:
-                WRITE_CTRL = 4'b0011 << ALU_RES[1:0]; // only need the last 2 bits for offset within the word
-                3'b010: WRITE_CTRL = 4'b1111;
-                default: WRITE_CTRL = 4'b0000;
+                write_ctrl = 4'b0011 << alu_res[1:0]; // only need the last 2 bits for offset within the word
+                3'b010: write_ctrl = 4'b1111;
+                default: write_ctrl = 4'b0000;
             endcase
-        end else WRITE_CTRL = 4'b0000;
+        end else write_ctrl = 4'b0000;
     end
 endmodule

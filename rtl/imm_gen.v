@@ -21,38 +21,38 @@
 
 
 module imm_gen (
-    input [31:0] INST,
-    input [6:0] IMM_SEL,
-    output reg [31:0] IMM
+    input [31:0] inst,
+    input [6:0] imm_sel,
+    output reg [31:0] imm
 );
 
     always @(*) begin
-        IMM = 32'b0;  //Dafault value to avoid latches
+        imm = 32'b0;  //Dafault value to avoid latches
 
-        case (IMM_SEL)
+        case (imm_sel)
             //I type
             7'b0010011, 7'b0000011, 7'b1100111: begin
-                IMM = {{20{INST[31]}}, INST[31:20]};
+                imm = {{20{inst[31]}}, inst[31:20]};
             end
 
             // S type
             7'b0100011: begin
-                IMM = {{20{INST[31]}}, INST[31:25], INST[11:7]};
+                imm = {{20{inst[31]}}, inst[31:25], inst[11:7]};
             end
 
             // B type
             7'b1100011: begin
-                IMM = {{19{INST[31]}}, INST[31], INST[7], INST[30:25], INST[11:8], 1'b0};
+                imm = {{19{inst[31]}}, inst[31], inst[7], inst[30:25], inst[11:8], 1'b0};
             end
 
             // U type
             7'b0110111, 7'b0010111: begin
-                IMM = {INST[31:12], 12'b0};
+                imm = {inst[31:12], 12'b0};
             end
 
             // J type
             7'b1101111: begin
-                IMM = {{12{INST[31]}}, INST[19:12], INST[20], INST[30:21], 1'b0};
+                imm = {{12{inst[31]}}, inst[19:12], inst[20], inst[30:21], 1'b0};
             end
         endcase
     end

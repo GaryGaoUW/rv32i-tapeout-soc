@@ -21,11 +21,11 @@
 
 
 module inst_mem (
-    input CLK,
-    input RST_N,
-    input STALL,
-    input [31:0] PC_ADDR,
-    output reg [31:0] INST
+    input clk,
+    input rst_n,
+    input stall,
+    input [31:0] pc_addr,
+    output reg [31:0] inst
 );
     // Use ram_syle = "block" to infer block RAM on FPGA
     (* ram_style = "block" *) reg [31:0] rom[0:1023];
@@ -80,15 +80,15 @@ module inst_mem (
 
     // Using a synchonous B-RAM, the synthesis tool will infer it as a block RAM on FPGA, which has a latency of 1 cycle.
     // This output register effectively IS the IF/ID instruction register.
-    always @(posedge CLK) begin
-        if (!RST_N) begin
+    always @(posedge clk) begin
+        if (!rst_n) begin
             // Reset to NOP so no X/garbage instruction leaks into ID when reset is released
-            INST <= 32'h00000013;
-        end else if (!STALL) begin
+            inst <= 32'h00000013;
+        end else if (!stall) begin
             // Chop the lowest 2 bits to get the word-aligned address index
             // Same as the data memory, because instructions are also word-aligned 
             // and we want to index by instruction number (like: 1,2,3...), not byte address.
-            INST <= rom[PC_ADDR[31:2]];
+            inst <= rom[pc_addr[31:2]];
         end
 
         // Note: this register must be frozen on stall together with the PC.
