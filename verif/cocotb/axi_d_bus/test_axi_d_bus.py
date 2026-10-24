@@ -153,7 +153,7 @@ async def test_write_then_read(dut):
     await tb.cpu_write(addr, value)
     got = await tb.cpu_read(addr)
 
-    assert got == value, f"value = {value:#010x}"
+    assert got == value, f"Expected {value:#010x} got value = {got:#010x}"
 
 
 # =============================================================================

@@ -22,7 +22,7 @@ run: build
 	./$(BIN)
 
 wave:
-	surfer wave.vcd
+	surfer $(CURDIR)/wave.vcd
 
 clean:
 	rm -rf obj_dir *.vcd
