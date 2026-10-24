@@ -6,6 +6,8 @@ __pycache__/
 # cocotb / simulation artifacts
 sim_build/
 results.xml
+*.result.xml
+.pytest_cache/
 *.vcd
 *.fst
 *.ghw
