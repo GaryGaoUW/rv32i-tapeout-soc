@@ -8,10 +8,8 @@ sim_build/
 results.xml
 *.result.xml
 .pytest_cache/
-*.vcd
 *.fst
 *.ghw
-dump.vcd
 
 # Verilator
 obj_dir/
