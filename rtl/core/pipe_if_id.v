@@ -21,15 +21,15 @@
 
 
 module pipe_if_id (
-    input clk,
-    input rst_n,
-    input flush,
-    input stall,
-
+    input        clk,
+    input        rst_n,
+    input        flush,
+    input        stall,
     input [31:0] if_pc_i,
     input [31:0] if_inst_i,
+
     output reg [31:0] id_pc_o,
-    output [31:0] id_inst_o
+    output     [31:0] id_inst_o
 );
 
     always @(posedge clk, negedge rst_n) begin

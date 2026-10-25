@@ -21,23 +21,21 @@
 
 
 module mem_stage (
-    input clk,
-    input rst_n,
-
+    input        clk,
+    input        rst_n,
     input [31:0] mem_wdata_i,
-    input mem_mem_rw_i,
+    input        mem_mem_rw_i,
     input [31:0] mem_alu_res_i,
-    input [2:0] mem_funct3_i,
+    input [ 2:0] mem_funct3_i,
 
     // Raw BRAM read data. Because of the 1-cycle BRAM latency it becomes valid
     // when the load instruction is already in WB, so the byte/half-word
     // extraction (mem_load_control) is done in the WB stage (see core_top),
     // using the load's own registered controls (funct3 / address offset).
     output [31:0] mem_rdata_o,
-
     // forwading signals
-    input [31:0] wb_data_i,
-    input mem_forward_wdata_sel_i
+    input  [31:0] wb_data_i,
+    input         mem_forward_wdata_sel_i
 );
 
     wire [3:0] mem_write_ctrl;  // 4-bit control signal for byte/half/word write enables

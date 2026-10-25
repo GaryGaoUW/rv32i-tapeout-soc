@@ -1,0 +1,24 @@
+{
+    // Verilog formatting: Verible (Google style) defaults, format on save.
+    // Only override: 4-space indent. All alignment stays "infer" (Verible
+    // default): a block you align by hand stays aligned, a flush-left block
+    // stays flush-left.
+    //
+    // House rules to keep things uniform under "infer":
+    //   - module port lists and instance connections: group by function with a
+    //     blank line between groups; each group aligns to its own longest entry
+    //     (lowRISC style). A comment line does not split a group.
+    //   - wire/reg and assignment blocks of 3+ lines: align them (hand-align one
+    //     line by 4+ spaces, save, the whole block aligns); 1-2 lines: flush-left
+    // veribleBuild "" = auto-detect OS.
+    "[verilog]": {
+        "editor.defaultFormatter": "bmpenuelas.systemverilog-formatter-vscode",
+        "editor.formatOnSave": true
+    },
+    "[systemverilog]": {
+        "editor.defaultFormatter": "bmpenuelas.systemverilog-formatter-vscode",
+        "editor.formatOnSave": true
+    },
+    "systemverilogFormatter.veribleBuild": "",
+    "systemverilogFormatter.commandLineArguments": "--indentation_spaces 4"
+}

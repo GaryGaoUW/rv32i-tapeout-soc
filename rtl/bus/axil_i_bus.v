@@ -22,28 +22,26 @@
 module axil_i_bus (
     // Interface with CPU. Aka IF
     input [31:0] cpu_pc_i,
-    input cpu_fetch_en_i,
+    input        cpu_fetch_en_i,
 
     // Interface with AXI4-Lite
-    input a_clk,
-    input a_reset_n,
-
+    input         a_clk,
+    input         a_reset_n,
     // AXI4-Lite Adress Read Address Channel
     output [31:0] m_axil_araddr_o,
-    output [2:0] m_axil_arprot_o,
-    output m_axil_arvalid_o,
-    input m_axil_arready_i,
-
+    output [ 2:0] m_axil_arprot_o,
+    output        m_axil_arvalid_o,
+    input         m_axil_arready_i,
     // AXI4-Lite Read Data Channel
-    input [31:0] m_axil_rdata_i,
-    input [1:0] m_axil_rresp_i, // Will ignore for now, as I am goint to implement Hardware Exception later
-    input m_axil_rvalid_i,
-    output m_axil_rready_o,
+    input  [31:0] m_axil_rdata_i,
+    input  [ 1:0] m_axil_rresp_i,    // Ignore for now, goint to implement Hardware Exception later
+    input         m_axil_rvalid_i,
+    output        m_axil_rready_o,
 
     // Interface with CPU. Aka ID (instruction register ready)
     output reg [31:0] cpu_instr_o,
-    output reg cpu_instr_valid_o,
-    output cpu_bus_stop_o
+    output reg        cpu_instr_valid_o,
+    output            cpu_bus_stop_o
 );
 
     // All states for FSM

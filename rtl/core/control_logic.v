@@ -21,14 +21,15 @@
 
 module control_logic (
     input [31:0] inst,
-    output reg reg_wen,
-    output reg a_sel,
-    output reg b_sel,
+
+    output reg       reg_wen,
+    output reg       a_sel,
+    output reg       b_sel,
     output reg [3:0] alu_sel,
-    output reg mem_rw,
+    output reg       mem_rw,
     output reg [1:0] wb_sel,
-    output reg is_jump,
-    output reg is_branch
+    output reg       is_jump,
+    output reg       is_branch
 );
 
     wire [6:0] opcode = inst[6:0];
@@ -36,14 +37,14 @@ module control_logic (
     wire [6:0] funct7 = inst[31:25];
 
     always @(*) begin
-        reg_wen = 1'b0;
-        mem_rw = 1'b0;
-        a_sel = 1'b0;
-        b_sel = 1'b0;
-        alu_sel = 4'b0000;
-        wb_sel = 2'b00;
+        reg_wen   = 1'b0;
+        mem_rw    = 1'b0;
+        a_sel     = 1'b0;
+        b_sel     = 1'b0;
+        alu_sel   = 4'b0000;
+        wb_sel    = 2'b00;
         is_branch = 1'b0;
-        is_jump = 1'b0;
+        is_jump   = 1'b0;
 
         case (opcode)
             // R-Type
@@ -106,12 +107,12 @@ module control_logic (
 
             // B-Type
             7'b1100011: begin
-                reg_wen = 1'b0;
-                a_sel = 1'b1;
-                b_sel = 1'b1;
-                alu_sel = 4'b0000;
-                mem_rw = 1'b0;
-                wb_sel = 2'b01;  // don't care
+                reg_wen   = 1'b0;
+                a_sel     = 1'b1;
+                b_sel     = 1'b1;
+                alu_sel   = 4'b0000;
+                mem_rw    = 1'b0;
+                wb_sel    = 2'b01;  // don't care
                 is_branch = 1'b1;
             end
 

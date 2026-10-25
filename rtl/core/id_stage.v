@@ -23,13 +23,13 @@
 //////////////////////////////////////////////////////////////////////////////////
 
 module id_stage (
-    input clk,
-    input rst_n,
+    input        clk,
+    input        rst_n,
     input [31:0] id_inst_i,
 
     // From WriteBack Stage: 
-    input wb_wen_i,
-    input [4:0] wb_waddr_i,
+    input        wb_wen_i,
+    input [ 4:0] wb_waddr_i,
     input [31:0] wb_wdata_i,
 
     // Outputs for internal wireing and forwarding in top
@@ -38,29 +38,25 @@ module id_stage (
     output [31:0] id_rdata1_o,
     output [31:0] id_rdata2_o,
     output [31:0] id_imm_o,
-
     // To Control Logic and ID/EX Pipeline Register
-    output       id_reg_wen_o,
-    output       id_a_sel_o,
-    output       id_b_sel_o,
-    output [3:0] id_alu_sel_o,
-    output       id_mem_rw_o,
-    output [1:0] id_wb_sel_o,
-
+    output        id_reg_wen_o,
+    output        id_a_sel_o,
+    output        id_b_sel_o,
+    output [ 3:0] id_alu_sel_o,
+    output        id_mem_rw_o,
+    output [ 1:0] id_wb_sel_o,
     // For Branch and Jump in AlU/ EX Stage
-    output id_is_jump_o,
-    output id_is_branch_o,
-    output [2:0] id_funct3_o,
-
+    output        id_is_jump_o,
+    output        id_is_branch_o,
+    output [ 2:0] id_funct3_o,
     // forwarding signals
-    output [4:0] id_raddr1_o,
-    output [4:0] id_raddr2_o
-
+    output [ 4:0] id_raddr1_o,
+    output [ 4:0] id_raddr2_o
 );
     // Decoding logic by bits on the ece222 slides
     assign id_opcode_o = id_inst_i[6:0];
     assign id_funct3_o = id_inst_i[14:12];
-    assign id_rd_o = id_inst_i[11:7];
+    assign id_rd_o     = id_inst_i[11:7];
     assign id_raddr1_o = id_inst_i[19:15];
     assign id_raddr2_o = id_inst_i[24:20];
 
@@ -71,10 +67,9 @@ module id_stage (
         .raddr2(id_raddr2_o),
         .rdata1(id_rdata1_o),
         .rdata2(id_rdata2_o),
-
-        .we   (wb_wen_i),
-        .waddr(wb_waddr_i),
-        .wdata(wb_wdata_i)
+        .we    (wb_wen_i),
+        .waddr (wb_waddr_i),
+        .wdata (wb_wdata_i)
     );
 
     imm_gen u_imm_gen (

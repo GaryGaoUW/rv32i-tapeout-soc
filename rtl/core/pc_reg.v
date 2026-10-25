@@ -21,10 +21,11 @@
 
 
 module pc_reg (
-    input clk,
-    input rst_n,
-    input stall,
+    input        clk,
+    input        rst_n,
+    input        stall,
     input [31:0] pc_in,
+
     output reg [31:0] pc_out
 );
 

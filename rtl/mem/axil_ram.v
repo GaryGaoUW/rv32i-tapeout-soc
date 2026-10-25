@@ -113,12 +113,14 @@ module axil_ram #(
     // TODO: arready / awready / wready / rvalid / bvalid / rresp / bresp
     assign s_axil_awready_o = (state == s_idle) && s_axil_awvalid_i && s_axil_wvalid_i;
     assign s_axil_wready_o = (state == s_idle) && s_axil_wvalid_i && s_axil_awvalid_i;
-    assign s_axil_arready_o = (state == s_idle) && s_axil_arvalid_i && !(s_axil_wvalid_i || s_axil_awvalid_i); // We assume write has higher priority
+    // We assume write has higher priority
+    assign s_axil_arready_o = (state == s_idle) && s_axil_arvalid_i && !(s_axil_wvalid_i || s_axil_awvalid_i);
     assign s_axil_rvalid_o = (state == s_read_resp);
     assign s_axil_bvalid_o = (state == s_write_resp);
 
     assign s_axil_rresp_o = 2'b00;  // Assume read and write allways succeed for BRAM! 
-    assign s_axil_bresp_o = 2'b00; // TO DO: When switching to SDRAM, the response values have to change to their actual meanings
+    // TO DO: When switching to SDRAM, the response values have to change to their actual meanings
+    assign s_axil_bresp_o = 2'b00;
 
     // Allocate 2^10 words (4KB) of BRAM space
     reg [31:0] mem[0:(1<<ADDR_W)-1];

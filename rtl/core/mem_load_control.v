@@ -21,10 +21,10 @@
 
 
 module mem_load_control (
-    input [31:0] alu_res,
-    input [31:0] rdata,
-    input is_load,
-    input [2:0] funct3,
+    input      [31:0] alu_res,
+    input      [31:0] rdata,
+    input             is_load,
+    input      [ 2:0] funct3,
     output reg [31:0] rdata_filtered
 );
 

@@ -21,8 +21,8 @@
 
 
 module fpga_top (
-    input i_clk_25m,
-    input i_rst_n,
+    input        i_clk_25m,
+    input        i_rst_n,
     output [3:0] debug_pc
 );
 

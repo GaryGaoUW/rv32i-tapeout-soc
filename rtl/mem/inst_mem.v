@@ -21,10 +21,10 @@
 
 
 module inst_mem (
-    input clk,
-    input rst_n,
-    input stall,
-    input [31:0] pc_addr,
+    input             clk,
+    input             rst_n,
+    input             stall,
+    input      [31:0] pc_addr,
     output reg [31:0] inst
 );
     // Use ram_syle = "block" to infer block RAM on FPGA

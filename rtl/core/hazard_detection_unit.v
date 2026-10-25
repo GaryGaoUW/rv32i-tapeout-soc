@@ -21,14 +21,13 @@
 
 
 module hazard_detection_unit (
-    input ex_reg_wen_i,
-    input [1:0] ex_wb_sel_i,
-    input [4:0] ex_rd_i,
-    input [4:0] id_raddr1_i,
-    input [4:0] id_raddr2_i,
-    input id_mem_rw_i,
-
-    output stall_o
+    input        ex_reg_wen_i,
+    input  [1:0] ex_wb_sel_i,
+    input  [4:0] ex_rd_i,
+    input  [4:0] id_raddr1_i,
+    input  [4:0] id_raddr2_i,
+    input        id_mem_rw_i,
+    output       stall_o
 );
 
     // Load-use hazard detection logic:

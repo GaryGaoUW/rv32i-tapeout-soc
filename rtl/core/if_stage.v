@@ -23,10 +23,10 @@
 module if_stage (
     input clk,
     input rst_n,
-    input if_pc_sel_i,
-    input [31:0] if_jump_addr_i,
-    input if_stall_i,
 
+    input         if_pc_sel_i,
+    input  [31:0] if_jump_addr_i,
+    input         if_stall_i,
     output [31:0] if_pc_o,
     output [31:0] if_inst_o
 );

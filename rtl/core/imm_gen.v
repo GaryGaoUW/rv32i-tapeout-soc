@@ -21,8 +21,8 @@
 
 
 module imm_gen (
-    input [31:0] inst,
-    input [6:0] imm_sel,
+    input      [31:0] inst,
+    input      [ 6:0] imm_sel,
     output reg [31:0] imm
 );
 

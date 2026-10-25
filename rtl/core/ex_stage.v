@@ -22,24 +22,23 @@
 
 module ex_stage (
     // Inputs from the ID/EX pipeline register
-    input [31:0] ex_pc_i,     // used for ALU op1 when pc_sel is 1
-    input [31:0] ex_rdata1_i, // used for ALU op1 and branch comp
-    input [31:0] ex_rdata2_i, // used for ALU op2 and branch comp
-    input [31:0] ex_imm_i,    // used for ALU op2
-
-    input       ex_a_sel_i,      // used for ALU op1 selection
-    input       ex_b_sel_i,      // used for ALU op2 selection
-    input [3:0] ex_alu_sel_i,    // used for ALU operation selection
-    input       ex_is_jump_i,    // used to determine pc_sel in IF stage
-    input       ex_is_branch_i,  // used to determine pc_sel in IF stage
-    input [2:0] ex_funct3_i,     // pass to M and used for branch comp
+    input [31:0] ex_pc_i,         // used for ALU op1 when pc_sel is 1
+    input [31:0] ex_rdata1_i,     // used for ALU op1 and branch comp
+    input [31:0] ex_rdata2_i,     // used for ALU op2 and branch comp
+    input [31:0] ex_imm_i,        // used for ALU op2
+    input        ex_a_sel_i,      // used for ALU op1 selection
+    input        ex_b_sel_i,      // used for ALU op2 selection
+    input [ 3:0] ex_alu_sel_i,    // used for ALU operation selection
+    input        ex_is_jump_i,    // used to determine pc_sel in IF stage
+    input        ex_is_branch_i,  // used to determine pc_sel in IF stage
+    input [ 2:0] ex_funct3_i,     // pass to M and used for branch comp
 
     // Outputs to MEM stage (New signals)
     output [31:0] ex_alu_res_o,
     output [31:0] ex_wdata_o,    // New signal for data to be written to memory
 
     // For Branch and Jump in IF stage
-    output if_pc_sel_o,
+    output        if_pc_sel_o,
     output [31:0] if_jump_addr_o,
 
     // forwarding signals
@@ -50,11 +49,11 @@ module ex_stage (
     input [ 1:0] ex_forward_wdata_sel_i
 );
 
-    reg [31:0] ex_alu_op1;
-    reg [31:0] ex_alu_op2;
-    reg [31:0] ex_fresh_rdata1;
-    reg [31:0] ex_fresh_rdata2;
-    wire ex_br_en;
+    reg  [31:0] ex_alu_op1;
+    reg  [31:0] ex_alu_op2;
+    reg  [31:0] ex_fresh_rdata1;
+    reg  [31:0] ex_fresh_rdata2;
+    wire        ex_br_en;
 
     always @(*) begin
         // Forwarding logic for ALU operand 1

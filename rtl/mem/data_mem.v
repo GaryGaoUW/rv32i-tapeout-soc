@@ -21,10 +21,10 @@
 
 
 module data_mem (
-    input clk,
-    input [3:0] we,
-    input [31:0] addr,
-    input [31:0] wdata,
+    input             clk,
+    input      [ 3:0] we,
+    input      [31:0] addr,
+    input      [31:0] wdata,
     output reg [31:0] rdata
 );
 
