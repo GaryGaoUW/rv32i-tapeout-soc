@@ -25,10 +25,8 @@ module core_top (
     input rst_n,
 
     // Instruction memory interface (memory lives in soc_top).
-    // imem_stall_o must freeze the memory's output register: that register is
     // the de-facto IF/ID instruction register (see inst_mem).
     output [31:0] imem_addr_o,
-    output        imem_stall_o,
     input  [31:0] imem_rdata_i,
     // Data memory interface (memory lives in soc_top).
     // dmem_rdata_i arrives 1 cycle after the request (BRAM latency).
@@ -36,6 +34,8 @@ module core_top (
     output [31:0] dmem_addr_o,
     output [31:0] dmem_wdata_o,
     input  [31:0] dmem_rdata_i,
+    // New stall for stop the cpu during mem R/W
+    input         bus_stall_i,
 
     // Basic outputs for simulation
     output [31:0] pc_wire,
@@ -94,20 +94,19 @@ module core_top (
         .rst_n         (rst_n),
         .if_pc_sel_i   (if_pc_sel),
         .if_jump_addr_i(if_jump_addr),
-        .if_stall_i    (stall),
+        .if_stall_i    (stall || bus_stall_i),
         .if_pc_o       (if_pc)
     );
 
     // Instruction fetch goes out to soc_top
-    assign imem_addr_o  = if_pc;
-    assign imem_stall_o = stall;
-    assign if_inst      = imem_rdata_i;
+    assign imem_addr_o = if_pc;
+    assign if_inst     = imem_rdata_i;
 
     pipe_if_id u_pipe_if_id (
         .clk      (clk),
         .rst_n    (rst_n),
-        .flush    (flush),
-        .stall    (stall),
+        .flush    (flush && !bus_stall_i),  // bus_stall has higher priority than flush
+        .stall    (stall || bus_stall_i),
         .if_pc_i  (if_pc),
         .if_inst_i(if_inst),
         .id_pc_o  (id_pc),
@@ -189,8 +188,8 @@ module core_top (
         .clk(clk),
         .rst_n(rst_n),
         // Flush the pipeline when there's a branch taken or jump, also flush when stalling to avoid executing wrong instructions
-        .flush(flush || stall),
-        .stall(1'b0),  // No stall for ID/EX, stalling happens in IF and EX stage
+        .flush((flush || stall) && !bus_stall_i),  // bus_stall has higher priority than flush
+        .stall(bus_stall_i),  // No stall for ID/EX for SRAM, but now added system buses
 
         // Information from ID stage for ALU to use in EX stage
         .id_pc_i    (id_pc),
@@ -283,10 +282,10 @@ module core_top (
     );
 
     pipe_ex_mem u_pipe_ex_mem (
-        .clk  (clk),
+        .clk(clk),
         .rst_n(rst_n),
-        .flush(1'b0),   // No flush for EX/MEM
-        .stall(1'b0),   // No stall for EX/MEM, stalling happens in IF and EX stage
+        .flush(1'b0),  // No flush for EX/MEM
+        .stall(bus_stall_i),  // No stall for EX/MEM for SRAM, but now added system buses
 
         .ex_pc_i     (ex_pc),
         .ex_wdata_i  (ex_wdata),
@@ -338,10 +337,10 @@ module core_top (
     assign mem_rdata = dmem_rdata_i;
 
     pipe_mem_wb u_pipe_mem_wb (
-        .clk  (clk),
+        .clk(clk),
         .rst_n(rst_n),
-        .flush(1'b0),   // No flush for MEM/WB
-        .stall(1'b0),   // No stall for EX/MEM, stalling happens in IF and EX stage
+        .flush(1'b0),  // No flush for MEM/WB
+        .stall(bus_stall_i),  // No stall for MEM/WB for SRAM, but now added system buses
 
         .mem_pc_i     (mem_pc),
         .mem_alu_res_i(mem_alu_res),

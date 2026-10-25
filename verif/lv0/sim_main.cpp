@@ -2,6 +2,7 @@
 #include "verilated.h"
 #include "verilated_vcd_c.h"  // Waveform tracing support
 #include <cstdio>
+#include <string>
 #include "Vsoc_top___024root.h"  // Direct access to internal rom / ram / regs
 
 #define MAX_CYCLES 10000
@@ -15,7 +16,7 @@ bool load_bin(Vsoc_top* top, const char* filename){
 
     // Initialize ROM (fill NOP: 0x00000013) and RAM (fill 0)
     for (int i = 0; i < 1024; i++) {
-        top->rootp->soc_top__DOT__u_imem__DOT__rom[i]  = 0x00000013;
+        top->rootp->soc_top__DOT__u_iram__DOT__mem[i]  = 0x00000013;
         top->rootp->soc_top__DOT__u_dmem__DOT__ram[i] = 0x00000000;
     }
 
@@ -23,7 +24,7 @@ bool load_bin(Vsoc_top* top, const char* filename){
     uint32_t word = 0;
     int idx = 0;
     while(fread(&word, sizeof(uint32_t), 1, fp) == 1 && idx < 1024){
-        top->rootp->soc_top__DOT__u_imem__DOT__rom[idx]  = word;
+        top->rootp->soc_top__DOT__u_iram__DOT__mem[idx]  = word;
         top->rootp->soc_top__DOT__u_dmem__DOT__ram[idx] = word;
         idx++;
     }
@@ -44,7 +45,11 @@ int main(int argc, char** argv) {
     // 3. Setup waveform dump
     auto tfp = std::make_unique<VerilatedVcdC>();
     p_top->trace(tfp.get(), 99);  // Trace depth
-    tfp->open("wave.vcd");
+    // Write the waveform next to this testbench (verif/lv0/wave.vcd), no matter
+    // which directory the binary is launched from. argv[0] = ".../obj_dir/Vsoc_top"
+    std::string exe_path = argv[0];
+    std::string obj_dir  = exe_path.substr(0, exe_path.find_last_of('/'));
+    tfp->open((obj_dir + "/../wave.vcd").c_str());
     uint64_t sim_time = 0;
 
     // 4. Reset: hold rst_n = 0 for 10 cycles, then release
@@ -86,7 +91,10 @@ int main(int argc, char** argv) {
         }
 
         if (drain_cycles < 0 && (is_ecall || same_pc_count >= 5)) {
-            drain_cycles = 10; // Allow 10 cycles for remaining pipeline stages to commit
+            // Allow the instructions ahead of ecall (e.g. "li a0, 0") to reach WB.
+            // Each pipeline step now takes >= 2 cycles (AXI-Lite fetch), so 3 steps
+            // need >= 6 cycles; 20 leaves headroom for bus stalls.
+            drain_cycles = 20;
         }
 
         if (drain_cycles > 0) {
