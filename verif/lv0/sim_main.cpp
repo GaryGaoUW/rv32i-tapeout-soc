@@ -1,12 +1,12 @@
-#include "Vcore_top.h"        // Verilator generated header (V + top module)
+#include "Vsoc_top.h"        // Verilator generated header (V + top module)
 #include "verilated.h"
 #include "verilated_vcd_c.h"  // Waveform tracing support
 #include <cstdio>
-#include "Vcore_top___024root.h"  // Direct access to internal rom / ram / regs
+#include "Vsoc_top___024root.h"  // Direct access to internal rom / ram / regs
 
 #define MAX_CYCLES 10000
 
-bool load_bin(Vcore_top* top, const char* filename){
+bool load_bin(Vsoc_top* top, const char* filename){
     FILE* fp = fopen(filename, "rb");
     if(!fp){
         printf("Failed to open %s\n", filename);
@@ -15,16 +15,16 @@ bool load_bin(Vcore_top* top, const char* filename){
 
     // Initialize ROM (fill NOP: 0x00000013) and RAM (fill 0)
     for (int i = 0; i < 1024; i++) {
-        top->rootp->core_top__DOT__u_if_stage__DOT__u_inst_mem__DOT__rom[i]  = 0x00000013;
-        top->rootp->core_top__DOT__u_mem_stage__DOT__u_data_mem__DOT__ram[i] = 0x00000000;
+        top->rootp->soc_top__DOT__u_imem__DOT__rom[i]  = 0x00000013;
+        top->rootp->soc_top__DOT__u_dmem__DOT__ram[i] = 0x00000000;
     }
 
     // Load binary into ROM and RAM
     uint32_t word = 0;
     int idx = 0;
     while(fread(&word, sizeof(uint32_t), 1, fp) == 1 && idx < 1024){
-        top->rootp->core_top__DOT__u_if_stage__DOT__u_inst_mem__DOT__rom[idx]  = word;
-        top->rootp->core_top__DOT__u_mem_stage__DOT__u_data_mem__DOT__ram[idx] = word;
+        top->rootp->soc_top__DOT__u_imem__DOT__rom[idx]  = word;
+        top->rootp->soc_top__DOT__u_dmem__DOT__ram[idx] = word;
         idx++;
     }
 
@@ -38,8 +38,8 @@ int main(int argc, char** argv) {
     Verilated::commandArgs(argc, argv);
     Verilated::traceEverOn(true);  // Enable wave tracing
     
-    // 2. Instantiate Vcore_top
-    auto p_top = std::make_unique<Vcore_top>();
+    // 2. Instantiate Vsoc_top
+    auto p_top = std::make_unique<Vsoc_top>();
 
     // 3. Setup waveform dump
     auto tfp = std::make_unique<VerilatedVcdC>();
@@ -121,8 +121,8 @@ int main(int argc, char** argv) {
     }
 
     // Check x10 (a0) and x3 (gp) for test result
-    uint32_t a0 = p_top->rootp->core_top__DOT__u_id_stage__DOT__u_regfile__DOT__regs[10];
-    uint32_t gp = p_top->rootp->core_top__DOT__u_id_stage__DOT__u_regfile__DOT__regs[3];
+    uint32_t a0 = p_top->rootp->soc_top__DOT__u_core__DOT__u_id_stage__DOT__u_regfile__DOT__regs[10];
+    uint32_t gp = p_top->rootp->soc_top__DOT__u_core__DOT__u_id_stage__DOT__u_regfile__DOT__regs[3];
     int test_result = 0;
     if (!halted) {
         printf("\033[1;31m[TEST TIMEOUT]\033[0m Simulation exceeded MAX_CYCLES (%d)\n", MAX_CYCLES);

@@ -219,6 +219,7 @@ Validate design on physical FPGA silicon and complete full RTL-to-GDSII flow via
 rv32i-tapeout-soc/
 ├── .github/workflows/regression.yml  # Automated CI regression
 ├── rtl/                              # SystemVerilog RTL modules
+│   ├── soc_top.v                     # Chip top: core + buses + memories + peripherals
 │   ├── core/                         # Pipeline datapath, hazard unit, CSRs
 │   ├── mem/                          # On-chip instruction / data RAMs
 │   ├── cache/                        # 2-Way I/D caches & RAMs

@@ -1,4 +1,4 @@
-TOP_MODULE = core_top
+TOP_MODULE = soc_top
 RTL_DIR    = ../../rtl
 # RTL is split by function (see ROADMAP Appendix B); Verilator searches
 # every directory below for module definitions.
@@ -16,7 +16,7 @@ VFLAGS = --cc --exe --build --trace \
 all: build
 
 build:
-	verilator $(VFLAGS) $(RTL_DIR)/core/$(TOP_MODULE).v $(SIM_SRC)
+	verilator $(VFLAGS) $(RTL_DIR)/$(TOP_MODULE).v $(SIM_SRC)
 
 run: build
 	./$(BIN)

@@ -28,7 +28,7 @@ module fpga_top (
 
     wire [31:0] alu_res;
 
-    core_top u_cpu (
+    soc_top u_soc (
         .clk    (i_clk_25m),
         .rst_n  (i_rst_n),
         .alu_res(alu_res)

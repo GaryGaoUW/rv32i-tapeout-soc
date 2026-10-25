@@ -24,6 +24,19 @@ module core_top (
     input clk,
     input rst_n,
 
+    // Instruction memory interface (memory lives in soc_top).
+    // imem_stall_o must freeze the memory's output register: that register is
+    // the de-facto IF/ID instruction register (see inst_mem).
+    output [31:0] imem_addr_o,
+    output        imem_stall_o,
+    input  [31:0] imem_rdata_i,
+    // Data memory interface (memory lives in soc_top).
+    // dmem_rdata_i arrives 1 cycle after the request (BRAM latency).
+    output [ 3:0] dmem_we_o,
+    output [31:0] dmem_addr_o,
+    output [31:0] dmem_wdata_o,
+    input  [31:0] dmem_rdata_i,
+
     // Basic outputs for simulation
     output [31:0] pc_wire,
     output [31:0] inst_wire,
@@ -82,9 +95,14 @@ module core_top (
         .if_pc_sel_i   (if_pc_sel),
         .if_jump_addr_i(if_jump_addr),
         .if_stall_i    (stall),
-        .if_pc_o       (if_pc),
-        .if_inst_o     (if_inst)
+        .if_pc_o       (if_pc)
     );
+
+    // Instruction fetch goes out to soc_top
+    assign imem_addr_o  = if_pc;
+    assign imem_stall_o = stall;
+    assign if_inst      = imem_rdata_i;
+
     pipe_if_id u_pipe_if_id (
         .clk      (clk),
         .rst_n    (rst_n),
@@ -301,21 +319,23 @@ module core_top (
     wire [ 2:0] wb_funct3;
 
     mem_stage u_mem_stage (
-        .clk  (clk),
-        .rst_n(rst_n),
-
         .mem_wdata_i  (mem_wdata),
         .mem_mem_rw_i (mem_mem_rw),
         .mem_alu_res_i(mem_alu_res),
         .mem_funct3_i (mem_funct3),
 
-        // Raw BRAM read data (valid one cycle later, when the load is in WB)
-        .mem_rdata_o(mem_rdata),
+        // Data memory request goes out to soc_top
+        .mem_dmem_we_o   (dmem_we_o),
+        .mem_dmem_addr_o (dmem_addr_o),
+        .mem_dmem_wdata_o(dmem_wdata_o),
 
         // forwarding signals
         .wb_data_i              (wb_data),
         .mem_forward_wdata_sel_i(mem_forward_wdata_sel)
     );
+
+    // Raw BRAM read data (valid one cycle later, when the load is in WB)
+    assign mem_rdata = dmem_rdata_i;
 
     pipe_mem_wb u_pipe_mem_wb (
         .clk  (clk),

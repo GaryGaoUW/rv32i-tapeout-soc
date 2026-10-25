@@ -27,8 +27,7 @@ module if_stage (
     input         if_pc_sel_i,
     input  [31:0] if_jump_addr_i,
     input         if_stall_i,
-    output [31:0] if_pc_o,
-    output [31:0] if_inst_o
+    output [31:0] if_pc_o
 );
     // Calculate the next PC value based on whether we are taking a jump/branch or just incrementing by 4.
     wire [31:0] if_next_pc = (if_pc_sel_i) ? if_jump_addr_i : (if_pc_o + 4);
@@ -41,13 +40,7 @@ module if_stage (
         .pc_out(if_pc_o)
     );
 
-    // The BRAM output register inside inst_mem is the de-facto IF/ID instruction
-    // register, so it must be frozen on stall together with the PC (see inst_mem).
-    inst_mem u_inst_mem (
-        .clk    (clk),
-        .rst_n  (rst_n),
-        .stall  (if_stall_i),
-        .pc_addr(if_pc_o),
-        .inst   (if_inst_o)
-    );
+    // The instruction memory now lives outside the core (see soc_top).
+    // if_pc_o is the fetch address; the instruction comes back into core_top
+    // through imem_rdata_i.
 endmodule

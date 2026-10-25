@@ -19,7 +19,7 @@ def run_all_tests():
             continue
 
         print(f"Running test for {bin_file.name}...")
-        result = subprocess.run(["./verif/lv0/obj_dir/Vcore_top", str(bin_file)], capture_output=True, text=True)
+        result = subprocess.run(["./verif/lv0/obj_dir/Vsoc_top", str(bin_file)], capture_output=True, text=True)
         is_pass = (result.returncode == 0)
 
         match = re.search(r"cycle (\d+)", result.stdout)
