@@ -1,14 +1,14 @@
 """
-cocotb testbench for rtl/bus/axi_d_bus.v
+cocotb testbench for rtl/bus/axil_d_bus.v
 
 Structure:
 
-    Python fake CPU  --cpu_*-->  axi_d_bus (DUT)  <--AXI-Lite-->  AxiLiteRam
+    Python fake CPU  --cpu_*-->  axil_d_bus (DUT)  <--AXI-Lite-->  AxiLiteRam
          ^                          |
          +------ cpu_bus_stop_o ----+
 
 Run from repo root:
-    make -C verif/cocotb/axi_d_bus
+    make -C verif/cocotb/axil_d_bus
 """
 
 from pathlib import Path
@@ -159,7 +159,7 @@ async def test_write_then_read(dut):
 # =============================================================================
 # pytest entry point: builds the RTL with Verilator and runs the tests above
 # =============================================================================
-def test_axi_d_bus_runner():
+def test_axil_d_bus_runner():
     from cocotb_tools.runner import get_runner
 
     here = Path(__file__).resolve().parent
@@ -168,17 +168,17 @@ def test_axi_d_bus_runner():
     runner = get_runner("verilator")
     runner.build(
         sources=[
-            repo / "rtl/bus/axi_d_bus.v",
-            here / "tb_axi_d_bus.v",
+            repo / "rtl/bus/axil_d_bus.v",
+            here / "tb_axil_d_bus.v",
         ],
-        hdl_toplevel="tb_axi_d_bus",
+        hdl_toplevel="tb_axil_d_bus",
         build_dir=here / "sim_build",
         waves=True,
         always=True,
     )
     runner.test(
-        hdl_toplevel="tb_axi_d_bus",
-        test_module="test_axi_d_bus",
+        hdl_toplevel="tb_axil_d_bus",
+        test_module="test_axil_d_bus",
         test_dir=here,
         waves=True,
     )

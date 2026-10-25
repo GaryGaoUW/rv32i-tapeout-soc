@@ -1,16 +1,16 @@
 `timescale 1ns / 1ps
 // -----------------------------------------------------------------------------
-// tb_axi_d_bus: test wrapper for cocotb
+// tb_axil_d_bus: test wrapper for cocotb
 //
 // Why this file exists:
 //   cocotbext-axi finds AXI signals by name: <prefix>_awaddr, <prefix>_awvalid...
-//   Our RTL uses direction suffixes (m_axi_awaddr_o, m_axi_awready_i), which
+//   Our RTL uses direction suffixes (m_axil_awaddr_o, m_axil_awready_i), which
 //   the library cannot match. This wrapper only renames ports - no logic.
 //
 //   CPU side  : cpu_*        (driven by the Python "fake CPU")
 //   AXI side  : m_axil_*     (connected to cocotbext-axi AxiLiteRam)
 // -----------------------------------------------------------------------------
-module tb_axi_d_bus (
+module tb_axil_d_bus (
     input         clk,
     input         rst_n,
 
@@ -51,7 +51,7 @@ module tb_axi_d_bus (
     output        m_axil_bready
 );
 
-    axi_d_bus u_dut (
+    axil_d_bus u_dut (
         .a_clk             (clk),
         .a_reset_n         (rst_n),
 
@@ -61,29 +61,29 @@ module tb_axi_d_bus (
         .cpu_r_req_i       (cpu_r_req_i),
         .cpu_w_req_i       (cpu_w_req_i),
 
-        .m_axi_araddr_o    (m_axil_araddr),
-        .m_axi_arprot_o    (m_axil_arprot),
-        .m_axi_arvalid_o   (m_axil_arvalid),
-        .m_axi_arready_i   (m_axil_arready),
+        .m_axil_araddr_o    (m_axil_araddr),
+        .m_axil_arprot_o    (m_axil_arprot),
+        .m_axil_arvalid_o   (m_axil_arvalid),
+        .m_axil_arready_i   (m_axil_arready),
 
-        .m_axi_rdata_i     (m_axil_rdata),
-        .m_axi_rresp_i     (m_axil_rresp),
-        .m_axi_rvalid_i    (m_axil_rvalid),
-        .m_axi_rready_o    (m_axil_rready),
+        .m_axil_rdata_i     (m_axil_rdata),
+        .m_axil_rresp_i     (m_axil_rresp),
+        .m_axil_rvalid_i    (m_axil_rvalid),
+        .m_axil_rready_o    (m_axil_rready),
 
-        .m_axi_awaddr_o    (m_axil_awaddr),
-        .m_axi_awprot_o    (m_axil_awprot),
-        .m_axi_awvalid_o   (m_axil_awvalid),
-        .m_axi_awready_i   (m_axil_awready),
+        .m_axil_awaddr_o    (m_axil_awaddr),
+        .m_axil_awprot_o    (m_axil_awprot),
+        .m_axil_awvalid_o   (m_axil_awvalid),
+        .m_axil_awready_i   (m_axil_awready),
 
-        .m_axi_wdata_o     (m_axil_wdata),
-        .m_axi_wstrb_o     (m_axil_wstrb),
-        .m_axi_wvalid_o    (m_axil_wvalid),
-        .m_axi_wready_i    (m_axil_wready),
+        .m_axil_wdata_o     (m_axil_wdata),
+        .m_axil_wstrb_o     (m_axil_wstrb),
+        .m_axil_wvalid_o    (m_axil_wvalid),
+        .m_axil_wready_i    (m_axil_wready),
 
-        .m_axi_bresp_i     (m_axil_bresp),
-        .m_axi_bvalid_i    (m_axil_bvalid),
-        .m_axi_bready_o    (m_axil_bready),
+        .m_axil_bresp_i     (m_axil_bresp),
+        .m_axil_bvalid_i    (m_axil_bvalid),
+        .m_axil_bready_o    (m_axil_bready),
 
         .cpu_rdata_o       (cpu_rdata_o),
         .cpu_read_valid_o  (cpu_read_valid_o),

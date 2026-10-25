@@ -222,7 +222,7 @@ rv32i-tapeout-soc/
 │   ├── core/                         # Pipeline datapath, hazard unit, CSRs
 │   ├── mem/                          # On-chip instruction / data RAMs
 │   ├── cache/                        # 2-Way I/D caches & RAMs
-│   ├── bus/                          # AXI4 interconnect & bridges (axi_i_bus, axi_d_bus)
+│   ├── bus/                          # AXI4 interconnect & bridges (axil_i_bus, axil_d_bus)
 │   └── periph/                       # CLINT, UART
 ├── verif/
 │   ├── lv0/                          # Verilator C++ testbench & Makefile
