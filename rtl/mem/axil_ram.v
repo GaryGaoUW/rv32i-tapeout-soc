@@ -21,7 +21,8 @@
 
 
 module axil_ram #(
-    parameter ADDR_W = 10
+    parameter ADDR_W = 10,
+    parameter DBG_DELAY = 0
 ) (
     // Interface with AXI4-Lite
     input a_clk,
@@ -56,6 +57,9 @@ module axil_ram #(
     output       s_axil_bvalid_o,
     input        s_axil_bready_i
 );
+    // Debugging counter for delay
+    integer _dbg_delay;
+
     // All states for FSM
     localparam s_idle = 2'b00;
     localparam s_write_resp = 2'b01;
@@ -115,7 +119,7 @@ module axil_ram #(
     assign s_axil_wready_o = (state == s_idle) && s_axil_wvalid_i && s_axil_awvalid_i;
     // We assume write has higher priority
     assign s_axil_arready_o = (state == s_idle) && s_axil_arvalid_i && !(s_axil_wvalid_i || s_axil_awvalid_i);
-    assign s_axil_rvalid_o = (state == s_read_resp);
+    assign s_axil_rvalid_o = (state == s_read_resp) && (_dbg_delay == 0);
     assign s_axil_bvalid_o = (state == s_write_resp);
 
     assign s_axil_rresp_o = 2'b00;  // Assume read and write allways succeed for BRAM! 
@@ -137,6 +141,20 @@ module axil_ram #(
             if (s_axil_wstrb_i[3]) mem[aw_addr_word][31:24] <= s_axil_wdata_i[31:24];
         end else if (ar_done) begin
             s_axil_rdata_o <= mem[ar_addr_word];
+        end
+    end
+
+    // For debugging!
+    // Simulate when read resp take more then 1 cycle
+    always @(posedge a_clk or negedge a_reset_n) begin
+        if (!a_reset_n) begin
+            _dbg_delay <= 0;
+        end else if (ar_done) begin
+            _dbg_delay <= DBG_DELAY;
+        end else begin
+            if (_dbg_delay > 0) begin
+                _dbg_delay <= _dbg_delay - 1'b1;
+            end
         end
     end
 

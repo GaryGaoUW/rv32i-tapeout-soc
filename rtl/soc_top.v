@@ -13,13 +13,23 @@
 //              the AXI-Lite buses and peripherals). Shared by every shell:
 //              simulation (verif/lv0), FPGA (fpga/fpga_top), Tiny Tapeout.
 // 
-// Dependencies: core_top, inst_mem, data_mem
+// Dependencies: core_top, axil_i_bus, axil_d_bus, axil_ram
 // 
 // Revision:
 // Revision 0.01 - File Created (Step A: memories moved out of core_top, no AXI)
+// Revision 0.02 - Fetch and load/store over AXI-Lite, one-request-per-instruction
+//                 adapter on the data bus
 // Additional Comments:
 // 
 //////////////////////////////////////////////////////////////////////////////////
+
+
+/*
+Debugging commands:
+cd /Users/garygao/Code/FPGA/rv32i-tapeout-soc
+make -C verif/lv0 build 
+.venv/bin/python verif/run_all.py
+*/
 
 
 module soc_top (
@@ -76,13 +86,24 @@ module soc_top (
     wire        d_axil_bvalid;
     wire        d_axil_bready;
 
-    // CPU <-> data bus
+    // CPU side of the data port (straight from MEM stage, held while stalled)
     wire [ 3:0] dmem_we;
     wire [31:0] dmem_addr;
     wire [31:0] dmem_wdata;
-    wire [31:0] dmem_rdata;
     wire        dmem_rd_en;
     wire        dmem_wr_en;
+    wire [31:0] dmem_rdata;  // read data handed to the core (selector output)
+
+    // Bus side of the data port (after the one-request-per-instruction adapter)
+    wire        d_bus_r_req;
+    wire        d_bus_w_req;
+    wire        d_bus_r_valid;
+    wire        d_bus_w_valid;
+    wire [31:0] d_bus_rdata;  // valid only in the cycle the read completes
+
+    // Adapter state
+    reg         dmem_done;  // this MEM-stage access has already completed
+    reg  [31:0] dmem_rdata_hold;  // read data saved when it completed early
 
     // The other dbg_* ports of core_top are left unconnected on purpose:
     // they are still visible in the waveform under u_core.
@@ -168,7 +189,45 @@ module soc_top (
         .s_axil_bready_i(1'b0)
     );
 
-    // Data bus master. CPU side: addr/wdata/we from MEM stage, rdata back to WB.
+
+    // -------------------------------------------------------------------------
+    // Data port adapter: one bus transaction per load/store instruction
+    //
+    // Both buses share one global stall. If the data bus finishes first, the
+    // pipeline is still frozen by the instruction bus, so the same load/store
+    // stays in MEM with its request still high. Without this adapter the data
+    // bus would run the access again (harmless for RAM, wrong for MMIO such as
+    // a UART). The core and axil_d_bus are not changed; only the request wires
+    // between them are gated.
+    //   dmem_done       : set when the bus completes, cleared when the pipeline
+    //                     advances (the instruction leaves MEM). Clear wins.
+    //   dmem_rdata_hold : read data saved in the completion cycle.
+    //   dmem_rdata      : completed earlier -> held copy; completing now -> bus.
+    // -------------------------------------------------------------------------
+    assign d_bus_r_req = dmem_rd_en && !dmem_done;
+    assign d_bus_w_req = dmem_wr_en && !dmem_done;
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            dmem_done <= 1'b0;
+        end else if (!bus_stall) begin
+            dmem_done <= 1'b0;
+        end else if (d_bus_r_valid || d_bus_w_valid) begin
+            dmem_done <= 1'b1;
+        end
+    end
+
+    always @(posedge clk or negedge rst_n) begin
+        if (!rst_n) begin
+            dmem_rdata_hold <= 32'h0;
+        end else if (d_bus_r_valid && !dmem_done) begin
+            dmem_rdata_hold <= d_bus_rdata;
+        end
+    end
+
+    assign dmem_rdata = dmem_done ? dmem_rdata_hold : d_bus_rdata;
+
+    // Data bus master. CPU side: gated requests from the adapter above.
     axil_d_bus u_d_bus (
         .a_clk    (clk),
         .a_reset_n(rst_n),
@@ -176,11 +235,11 @@ module soc_top (
         .cpu_addr_i       (dmem_addr),
         .cpu_wdata_i      (dmem_wdata),
         .cpu_write_en_i   (dmem_we),
-        .cpu_r_req_i      (dmem_rd_en),
-        .cpu_w_req_i      (dmem_wr_en),
-        .cpu_rdata_o      (dmem_rdata),
-        .cpu_read_valid_o (),
-        .cpu_write_valid_o(),
+        .cpu_r_req_i      (d_bus_r_req),
+        .cpu_w_req_i      (d_bus_w_req),
+        .cpu_rdata_o      (d_bus_rdata),
+        .cpu_read_valid_o (d_bus_r_valid),
+        .cpu_write_valid_o(d_bus_w_valid),
         .cpu_bus_stop_o   (d_bus_stop),
 
         .m_axil_araddr_o (d_axil_araddr),

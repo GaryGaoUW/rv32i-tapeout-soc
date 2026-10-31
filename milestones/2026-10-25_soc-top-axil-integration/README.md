@@ -1,6 +1,6 @@
-**Status: 🚧 IN PROGRESS — Stage 1 of 3 done**
+**Status: ✅ DONE (2026-10-31)**
 
-**2026-10-25** — Integrate the AXI4-Lite buses and RAMs into the 5-stage RV32I core through a new chip-level `soc_top`, keeping all 38/38 `rv32ui` ISA tests passing (`wave.vcd`: latest completed stage, `rv32ui-p-add`).
+**2026-10-25** — Integrate the AXI4-Lite buses and RAMs into the 5-stage RV32I core through a new chip-level `soc_top`, keeping all 38/38 `rv32ui` ISA tests passing (`wave.vcd`: final design, `rv32ui-p-sw`, every fetch, load and store over AXI-Lite).
 
 ```mermaid
 flowchart LR
@@ -34,8 +34,8 @@ The CPU core contains no memory. It only exposes two ports: `imem_*` (fetch) and
 | Stage | Goal | Status |
 | --- | --- | --- |
 | 1 | Move `inst_mem` / `data_mem` out of `core_top` into `soc_top` (no AXI yet) | ✅ Done |
-| 2 | Replace them with `axil_i_bus` / `axil_d_bus` + two `axil_ram`, add global bus stall | ⏳ |
-| 3 | 38/38 ISA tests pass over AXI-Lite | ⏳ |
+| 2 | Replace them with `axil_i_bus` / `axil_d_bus` + two `axil_ram`, add global bus stall | ✅ Done |
+| 3 | 38/38 ISA tests pass over AXI-Lite | ✅ Done |
 
 ## Movements
 
@@ -77,7 +77,7 @@ flowchart LR
 
 ### 2026-10-31 17:20 — Stage 2b-2 (wiring): loads/stores over AXI-Lite
 
-Loads/stores now run over `axil_d_bus` + `axil_ram` (D-RAM); `core_top` exposes `dmem_rd_en_o` / `dmem_wr_en_o`; `bus_stall = i_bus_stop || d_bus_stop`. ISA regression 38/38 with no extra cycles (I- and D-bus both take 2 cycles and overlap). The one-request-per-instruction `done` flag is still to do.
+Loads/stores now run over `axil_d_bus` + `axil_ram` (D-RAM); `core_top` exposes `dmem_rd_en_o` / `dmem_wr_en_o`; `bus_stall = i_bus_stop || d_bus_stop`. ISA regression 38/38 with no extra cycles (I- and D-bus both take 2 cycles and overlap). The one-request-per-instruction `done` flag is still to do (commit `af91146`).
 
 ```mermaid
 flowchart LR
@@ -87,5 +87,38 @@ flowchart LR
         IBUS -.->|"i_bus_stop"| OR(("OR"))
         DBUS -.->|"d_bus_stop"| OR
         OR -.->|"bus_stall"| CORE
+    end
+```
+
+### 2026-10-31 19:55 — Stage 2b-2: one bus transaction per load/store
+
+Added `DBG_DELAY` to `axil_ram` to make the two buses finish at different times, and a scoreboard in the Verilator testbench (bus handshakes vs. executed loads/stores). With a slow I-RAM every load/store hit the bus twice while ISA still showed 38/38, because RAM accesses are idempotent. A small adapter in `soc_top` (`dmem_done` flag that gates the request, `dmem_rdata_hold` register, and a selector) fixes it: 38/38 with zero extra transactions for I/D delays 0/0, 2/0, 0/3 and 3/1. Removing the selector fails 8 tests in the same-cycle case.
+
+```mermaid
+flowchart LR
+    CORE["core_top (MEM stage)"] -->|"dmem_rd_en / wr_en"| GATE["AND !dmem_done"]
+    GATE -->|"d_bus_r_req / w_req"| DBUS["axil_d_bus"]
+    DBUS -->|"r_valid / w_valid (set)"| DONE["dmem_done"]
+    STALL["bus_stall = 0 (clear, wins)"] --> DONE
+    DONE --> GATE
+    DBUS -->|"d_bus_rdata"| HOLD["dmem_rdata_hold"]
+    DBUS -->|"d_bus_rdata"| MUX{"dmem_done ?"}
+    HOLD --> MUX
+    MUX -->|"dmem_rdata"| CORE
+```
+
+### 2026-10-31 19:58 — Stage 3: milestone done
+
+Debug delays removed (both RAMs at `DBG_DELAY = 0`). The final design fetches every instruction and runs every load/store over AXI-Lite: ISA regression 38/38, scoreboard shows one bus transaction per load/store in every test (`rv32ui-p-sw`: 34 reads / 34 loads, 34 writes / 34 stores, 1060 cycles). `wave.vcd` replaced with this run.
+
+```mermaid
+flowchart LR
+    subgraph SOC["soc_top"]
+        CORE["core_top"] -->|"imem_*"| IBUS["axil_i_bus"] -->|"AR / R"| IRAM["axil_ram (I-RAM)"]
+        CORE -->|"dmem_*"| ADP["one-request adapter"] -->|"d_bus_*"| DBUS["axil_d_bus"] -->|"AR / R / AW / W / B"| DRAM["axil_ram (D-RAM)"]
+        IBUS -.->|"i_bus_stop"| OR(("OR"))
+        DBUS -.->|"d_bus_stop"| OR
+        OR -.->|"bus_stall"| CORE
+        OR -.->|"clear done"| ADP
     end
 ```

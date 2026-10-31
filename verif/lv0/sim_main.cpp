@@ -73,28 +73,61 @@ int main(int argc, char** argv) {
         p_top->rst_n = 1;
     }
 
+    // Poison a0 (x10). The regfile resets to 0, and a0 == 0 means PASS, so a
+    // simulation that stops before the test writes a0 would look like a PASS.
+    // With a non-zero start value, only a real "li a0, 0" can produce a PASS.
+    p_top->rootp->soc_top__DOT__u_core__DOT__u_id_stage__DOT__u_regfile__DOT__regs[10] = 0xDEADBEEF;
+
+    // Hang watchdog: the PC may legally stay unchanged for several cycles while
+    // a bus is busy (fetch alone is >= 2 cycles, more with DBG_DELAY). Only a
+    // much longer freeze means the pipeline is stuck.
+    const int HANG_CYCLES = 1000;
+
     uint32_t prev_pc = 0xFFFFFFFF;
     int same_pc_count = 0;
     int drain_cycles = -1;
     bool halted = false;
+    bool hung = false;
+
+    // Scoreboard: each load/store instruction must cause exactly ONE D-bus
+    // transaction. Compare what the bus did with what the pipeline executed.
+    auto* r = p_top->rootp;
+    int dbus_reads = 0, dbus_writes = 0;   // D-RAM handshakes: R done / B done
+    int mem_loads  = 0, mem_stores  = 0;   // load/store leaving MEM (pipeline advances)
 
     for(int i=0; i<MAX_CYCLES; i++){
         p_top->clk = 0; p_top->eval(); 
         tfp->dump(sim_time++);
 
-        // Detect termination: ecall (0x00000073) or self-loop
+        // Scoreboard sampling (combinational values of this cycle)
+        dbus_reads  += r->soc_top__DOT__u_dram__DOT__r_done;
+        dbus_writes += r->soc_top__DOT__u_dram__DOT__b_done;
+        if (!r->soc_top__DOT__bus_stall) {   // the instruction in MEM moves on this edge
+            if (r->soc_top__DOT__u_core__DOT__mem_mem_rw) mem_stores++;
+            if (r->soc_top__DOT__u_core__DOT__mem_reg_wen &&
+                r->soc_top__DOT__u_core__DOT__mem_wb_sel == 0) mem_loads++;
+        }
+
+        // Normal end of test: ecall (0x00000073) is fetched.
         bool is_ecall = (p_top->inst_wire == 0x00000073);
-        if (p_top->pc_wire == prev_pc && p_top->pc_wire != 0) {
+
+        // Abnormal end: PC frozen for HANG_CYCLES -> the pipeline is stuck.
+        if (p_top->pc_wire == prev_pc) {
             same_pc_count++;
         } else {
             same_pc_count = 0;
         }
+        if (same_pc_count >= HANG_CYCLES) {
+            printf(">>> PC stuck at %08x for %d cycles (cycle %d)\n", p_top->pc_wire, HANG_CYCLES, i);
+            hung = true;
+            break;
+        }
 
-        if (drain_cycles < 0 && (is_ecall || same_pc_count >= 5)) {
-            // Allow the instructions ahead of ecall (e.g. "li a0, 0") to reach WB.
-            // Each pipeline step now takes >= 2 cycles (AXI-Lite fetch), so 3 steps
-            // need >= 6 cycles; 20 leaves headroom for bus stalls.
-            drain_cycles = 20;
+        if (drain_cycles < 0 && is_ecall) {
+            // Let the instructions ahead of ecall (e.g. "li a0, 0") reach WB.
+            // Each pipeline step takes >= 2 cycles over AXI-Lite and more with
+            // DBG_DELAY, so leave plenty of headroom.
+            drain_cycles = 100;
         }
 
         if (drain_cycles > 0) {
@@ -131,9 +164,19 @@ int main(int argc, char** argv) {
     // Check x10 (a0) and x3 (gp) for test result
     uint32_t a0 = p_top->rootp->soc_top__DOT__u_core__DOT__u_id_stage__DOT__u_regfile__DOT__regs[10];
     uint32_t gp = p_top->rootp->soc_top__DOT__u_core__DOT__u_id_stage__DOT__u_regfile__DOT__regs[3];
+    // One line, parsed by verif/run_all.py
+    printf(">>> DBUS reads=%d writes=%d | MEM loads=%d stores=%d\n",
+           dbus_reads, dbus_writes, mem_loads, mem_stores);
+
     int test_result = 0;
-    if (!halted) {
+    if (hung) {
+        printf("\033[1;31m[TEST HANG]\033[0m Pipeline stuck (no PC change for %d cycles)\n", HANG_CYCLES);
+        test_result = 1;
+    } else if (!halted) {
         printf("\033[1;31m[TEST TIMEOUT]\033[0m Simulation exceeded MAX_CYCLES (%d)\n", MAX_CYCLES);
+        test_result = 1;
+    } else if (a0 == 0xDEADBEEF) {
+        printf("\033[1;31m[TEST FAILED]\033[0m Ended before the test wrote a0 (a0 still 0xDEADBEEF)\n");
         test_result = 1;
     } else if (a0 == 0) {
         printf("\033[1;32m[TEST PASSED]\033[0m All tests passed successfully!\n");

@@ -30,7 +30,19 @@ def run_all_tests():
         else:
             status = "\033[1;31m[FAIL]\033[0m"
 
-        print(f"[{i:02d}/{total_tests}] {bin_file.stem:<20} {status} (cycle {cycle_count})")
+        # Scoreboard: D-bus transactions vs. load/store instructions executed.
+        # "extra" > 0 means the same instruction hit the bus more than once.
+        sb = re.search(r"DBUS reads=(\d+) writes=(\d+) \| MEM loads=(\d+) stores=(\d+)", result.stdout)
+        if sb:
+            rd, wr, ld, st = map(int, sb.groups())
+            extra = (rd - ld) + (wr - st)
+            color = "\033[1;33m" if extra else ""
+            reset = "\033[0m" if extra else ""
+            sb_text = f"{color}rd {rd}/{ld}  wr {wr}/{st}  extra {extra:+d}{reset}"
+        else:
+            sb_text = "scoreboard N/A"
+
+        print(f"[{i:02d}/{total_tests}] {bin_file.stem:<20} {status} (cycle {cycle_count:>5})  {sb_text}")
 
     print("=" * 60)
     print(f"Summary: {pass_count}/{total_tests} tests passed ({(pass_count/total_tests)*100:.1f}%)")
