@@ -36,6 +36,8 @@ module core_top (
     input  [31:0] dmem_rdata_i,
     // New stall for stop the cpu during mem R/W
     input         bus_stall_i,
+    output        dmem_rd_en_o,
+    output        dmem_wr_en_o,
 
     // Basic outputs for simulation
     output [31:0] pc_wire,
@@ -323,6 +325,9 @@ module core_top (
         .mem_alu_res_i(mem_alu_res),
         .mem_funct3_i (mem_funct3),
 
+        .mem_wb_sel_i (mem_wb_sel),
+        .mem_reg_wen_i(mem_reg_wen),
+
         // Data memory request goes out to soc_top
         .mem_dmem_we_o   (dmem_we_o),
         .mem_dmem_addr_o (dmem_addr_o),
@@ -330,7 +335,10 @@ module core_top (
 
         // forwarding signals
         .wb_data_i              (wb_data),
-        .mem_forward_wdata_sel_i(mem_forward_wdata_sel)
+        .mem_forward_wdata_sel_i(mem_forward_wdata_sel),
+
+        .mem_dmem_rd_en_o(dmem_rd_en_o),
+        .mem_dmem_wr_en_o(dmem_wr_en_o)
     );
 
     // Raw BRAM read data (valid one cycle later, when the load is in WB)

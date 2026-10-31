@@ -17,7 +17,7 @@ bool load_bin(Vsoc_top* top, const char* filename){
     // Initialize ROM (fill NOP: 0x00000013) and RAM (fill 0)
     for (int i = 0; i < 1024; i++) {
         top->rootp->soc_top__DOT__u_iram__DOT__mem[i]  = 0x00000013;
-        top->rootp->soc_top__DOT__u_dmem__DOT__ram[i] = 0x00000000;
+        top->rootp->soc_top__DOT__u_dram__DOT__mem[i] = 0x00000000;
     }
 
     // Load binary into ROM and RAM
@@ -25,7 +25,7 @@ bool load_bin(Vsoc_top* top, const char* filename){
     int idx = 0;
     while(fread(&word, sizeof(uint32_t), 1, fp) == 1 && idx < 1024){
         top->rootp->soc_top__DOT__u_iram__DOT__mem[idx]  = word;
-        top->rootp->soc_top__DOT__u_dmem__DOT__ram[idx] = word;
+        top->rootp->soc_top__DOT__u_dram__DOT__mem[idx] = word;
         idx++;
     }
 

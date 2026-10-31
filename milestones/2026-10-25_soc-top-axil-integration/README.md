@@ -39,6 +39,53 @@ The CPU core contains no memory. It only exposes two ports: `imem_*` (fetch) and
 
 ## Movements
 
-- **2026-10-25 15:21** — Stage 1: added `rtl/soc_top.v`; `core_top` now exposes `imem_*` / `dmem_*` ports; `fpga_top` and the Verilator testbench use `soc_top` as top. ISA regression 38/38 (commit `e98a8be`).
-- **2026-10-25 16:40** — Stage 2a: added `bus_stall_i` to `core_top`; it freezes every pipeline register and masks flush (flush has priority over stall inside the pipe registers). Tied to 0 for now; ISA regression still 38/38.
-- **2026-10-25 18:01** — Stage 2b-1: instruction fetch now runs over AXI-Lite (`axil_i_bus` + `axil_ram` I-RAM); IF/ID and MEM/WB became real registers (the hidden BRAM output register and `flush_d` are gone). ISA regression 38/38, cycle count ×2 as expected (`rv32ui-p-add`: 466 → 932).
+### 2026-10-25 15:21 — Stage 1: memories moved out of the core
+
+Added `rtl/soc_top.v`; `core_top` now exposes `imem_*` / `dmem_*` ports; `fpga_top` and the Verilator testbench use `soc_top` as top. ISA regression 38/38 (commit `e98a8be`).
+
+```mermaid
+flowchart LR
+    subgraph SOC["soc_top"]
+        CORE["core_top"] -->|"imem_*"| IM["inst_mem (BRAM)"]
+        CORE -->|"dmem_*"| DM["data_mem (BRAM)"]
+    end
+```
+
+### 2026-10-25 16:40 — Stage 2a: bus stall wired into the pipeline
+
+Added `bus_stall_i` to `core_top`; it freezes every pipeline register and masks flush (flush has priority over stall inside the pipe registers). Tied to 0 for now; ISA regression still 38/38.
+
+```mermaid
+flowchart LR
+    BS["bus_stall_i (tied 0)"] -->|"stall"| P["PC / IF-ID / ID-EX / EX-MEM / MEM-WB"]
+    BS -->|"mask"| F["flush"]
+    HDU["hazard_detection_unit"] -->|"load-use stall"| P
+```
+
+### 2026-10-25 18:01 — Stage 2b-1: instruction fetch over AXI-Lite
+
+Fetch now runs over `axil_i_bus` + `axil_ram` (I-RAM); IF/ID and MEM/WB became real registers (the hidden BRAM output register and `flush_d` are gone). ISA regression 38/38, cycle count ×2 as expected (`rv32ui-p-add`: 466 → 932; commit `9471711`).
+
+```mermaid
+flowchart LR
+    subgraph SOC["soc_top"]
+        CORE["core_top"] -->|"imem_*"| IBUS["axil_i_bus"] -->|"AR / R"| IRAM["axil_ram (I-RAM)"]
+        CORE -->|"dmem_*"| DM["data_mem (BRAM)"]
+        IBUS -.->|"bus_stall"| CORE
+    end
+```
+
+### 2026-10-31 17:20 — Stage 2b-2 (wiring): loads/stores over AXI-Lite
+
+Loads/stores now run over `axil_d_bus` + `axil_ram` (D-RAM); `core_top` exposes `dmem_rd_en_o` / `dmem_wr_en_o`; `bus_stall = i_bus_stop || d_bus_stop`. ISA regression 38/38 with no extra cycles (I- and D-bus both take 2 cycles and overlap). The one-request-per-instruction `done` flag is still to do.
+
+```mermaid
+flowchart LR
+    subgraph SOC["soc_top"]
+        CORE["core_top"] -->|"imem_*"| IBUS["axil_i_bus"] -->|"AR / R"| IRAM["axil_ram (I-RAM)"]
+        CORE -->|"dmem_* + rd_en / wr_en"| DBUS["axil_d_bus"] -->|"AR / R / AW / W / B"| DRAM["axil_ram (D-RAM)"]
+        IBUS -.->|"i_bus_stop"| OR(("OR"))
+        DBUS -.->|"d_bus_stop"| OR
+        OR -.->|"bus_stall"| CORE
+    end
+```

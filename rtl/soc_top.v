@@ -41,7 +41,9 @@ module soc_top (
     wire [31:0] imem_rdata;
 
     // Any bus still busy -> freeze the whole pipeline
-    wire        bus_stall;
+    wire        i_bus_stop;
+    wire        d_bus_stop;
+    wire        bus_stall = i_bus_stop || d_bus_stop;
 
     // Instruction bus <-> I-RAM (AXI-Lite read channels only)
     wire [31:0] i_axil_araddr;
@@ -53,11 +55,34 @@ module soc_top (
     wire        i_axil_rvalid;
     wire        i_axil_rready;
 
-    // CPU <-> data memory
+    // Data bus <-> D-RAM (full AXI-Lite: read + write)
+    wire [31:0] d_axil_araddr;
+    wire [ 2:0] d_axil_arprot;
+    wire        d_axil_arvalid;
+    wire        d_axil_arready;
+    wire [31:0] d_axil_rdata;
+    wire [ 1:0] d_axil_rresp;
+    wire        d_axil_rvalid;
+    wire        d_axil_rready;
+    wire [31:0] d_axil_awaddr;
+    wire [ 2:0] d_axil_awprot;
+    wire        d_axil_awvalid;
+    wire        d_axil_awready;
+    wire [31:0] d_axil_wdata;
+    wire [ 3:0] d_axil_wstrb;
+    wire        d_axil_wvalid;
+    wire        d_axil_wready;
+    wire [ 1:0] d_axil_bresp;
+    wire        d_axil_bvalid;
+    wire        d_axil_bready;
+
+    // CPU <-> data bus
     wire [ 3:0] dmem_we;
     wire [31:0] dmem_addr;
     wire [31:0] dmem_wdata;
     wire [31:0] dmem_rdata;
+    wire        dmem_rd_en;
+    wire        dmem_wr_en;
 
     // The other dbg_* ports of core_top are left unconnected on purpose:
     // they are still visible in the waveform under u_core.
@@ -73,7 +98,9 @@ module soc_top (
         .dmem_wdata_o(dmem_wdata),
         .dmem_rdata_i(dmem_rdata),
 
-        .bus_stall_i(bus_stall),
+        .bus_stall_i (bus_stall),
+        .dmem_rd_en_o(dmem_rd_en),
+        .dmem_wr_en_o(dmem_wr_en),
 
         .pc_wire       (pc_wire),
         .inst_wire     (inst_wire),
@@ -95,7 +122,7 @@ module soc_top (
         .cpu_fetch_en_i   (1'b1),
         .cpu_instr_o      (imem_rdata),
         .cpu_instr_valid_o(),
-        .cpu_bus_stop_o   (bus_stall),
+        .cpu_bus_stop_o   (i_bus_stop),
 
         .m_axil_araddr_o (i_axil_araddr),
         .m_axil_arprot_o (i_axil_arprot),
@@ -109,8 +136,7 @@ module soc_top (
     );
 
     // I-RAM: 2^10 words = 4 KB. Read-only from the CPU side, so the write
-    // channel inputs are tied to 0 (never leave inputs floating) and the
-    // write channel outputs are left open. Synthesis removes the write logic.
+    // channel inputs are tied to 0 (never leave inputs floating)
     axil_ram #(
         .ADDR_W(10)
     ) u_iram (
@@ -132,22 +158,86 @@ module soc_top (
         .s_axil_awvalid_i(1'b0),
         .s_axil_awready_o(),
 
-        .s_axil_wdata_i (32'b0),
-        .s_axil_wstrb_i (4'b0),
+        .s_axil_wdata_i(32'b0),
+        .s_axil_wstrb_i(4'b0),
         .s_axil_wvalid_i(1'b0),
-        .s_axil_wready_o(),
+        .s_axil_wready_o(), // Write channel outputs are left open. Synthesis will remove the write logic :)
 
         .s_axil_bresp_o (),
         .s_axil_bvalid_o(),
         .s_axil_bready_i(1'b0)
     );
 
-    data_mem u_dmem (
-        .clk  (clk),
-        .we   (dmem_we),
-        .addr (dmem_addr),
-        .wdata(dmem_wdata),
-        .rdata(dmem_rdata)
+    // Data bus master. CPU side: addr/wdata/we from MEM stage, rdata back to WB.
+    axil_d_bus u_d_bus (
+        .a_clk    (clk),
+        .a_reset_n(rst_n),
+
+        .cpu_addr_i       (dmem_addr),
+        .cpu_wdata_i      (dmem_wdata),
+        .cpu_write_en_i   (dmem_we),
+        .cpu_r_req_i      (dmem_rd_en),
+        .cpu_w_req_i      (dmem_wr_en),
+        .cpu_rdata_o      (dmem_rdata),
+        .cpu_read_valid_o (),
+        .cpu_write_valid_o(),
+        .cpu_bus_stop_o   (d_bus_stop),
+
+        .m_axil_araddr_o (d_axil_araddr),
+        .m_axil_arprot_o (d_axil_arprot),
+        .m_axil_arvalid_o(d_axil_arvalid),
+        .m_axil_arready_i(d_axil_arready),
+
+        .m_axil_rdata_i (d_axil_rdata),
+        .m_axil_rresp_i (d_axil_rresp),
+        .m_axil_rvalid_i(d_axil_rvalid),
+        .m_axil_rready_o(d_axil_rready),
+
+        .m_axil_awaddr_o (d_axil_awaddr),
+        .m_axil_awprot_o (d_axil_awprot),
+        .m_axil_awvalid_o(d_axil_awvalid),
+        .m_axil_awready_i(d_axil_awready),
+
+        .m_axil_wdata_o (d_axil_wdata),
+        .m_axil_wstrb_o (d_axil_wstrb),
+        .m_axil_wvalid_o(d_axil_wvalid),
+        .m_axil_wready_i(d_axil_wready),
+
+        .m_axil_bresp_i (d_axil_bresp),
+        .m_axil_bvalid_i(d_axil_bvalid),
+        .m_axil_bready_o(d_axil_bready)
+    );
+
+    // D-RAM: 2^10 words = 4 KB. Both read and write channels are used here
+    axil_ram #(
+        .ADDR_W(10)
+    ) u_dram (
+        .a_clk    (clk),
+        .a_reset_n(rst_n),
+
+        .s_axil_araddr_i (d_axil_araddr),
+        .s_axil_arprot_i (d_axil_arprot),
+        .s_axil_arvalid_i(d_axil_arvalid),
+        .s_axil_arready_o(d_axil_arready),
+
+        .s_axil_rdata_o (d_axil_rdata),
+        .s_axil_rresp_o (d_axil_rresp),
+        .s_axil_rvalid_o(d_axil_rvalid),
+        .s_axil_rready_i(d_axil_rready),
+
+        .s_axil_awaddr_i (d_axil_awaddr),
+        .s_axil_awprot_i (d_axil_awprot),
+        .s_axil_awvalid_i(d_axil_awvalid),
+        .s_axil_awready_o(d_axil_awready),
+
+        .s_axil_wdata_i (d_axil_wdata),
+        .s_axil_wstrb_i (d_axil_wstrb),
+        .s_axil_wvalid_i(d_axil_wvalid),
+        .s_axil_wready_o(d_axil_wready),
+
+        .s_axil_bresp_o (d_axil_bresp),
+        .s_axil_bvalid_o(d_axil_bvalid),
+        .s_axil_bready_i(d_axil_bready)
     );
 
 endmodule

@@ -23,5 +23,8 @@ A milestone that takes several steps is created when work starts and updated as 
 - First line: `**Status: 🚧 IN PROGRESS — Stage N of M done**`, changed to `**Status: ✅ DONE**` when finished.
 - Then the one-sentence goal (date + what it achieves), then an English Mermaid system-architecture diagram of the target design.
 - A stage table: `| Stage | Goal | Status |` with ✅ / ⏳.
-- A `## Movements` list: one timestamped line per meaningful step (stage finished, key fix, test result, commit hash). Append a line every time a stage completes or a notable step lands; keep each line to one sentence.
+- A `## Movements` section: one entry per meaningful step (stage finished, key fix, test result, commit hash). Append an entry every time a stage completes or a notable step lands. Each entry is:
+  - a `### YYYY-MM-DD HH:MM — <step name>` heading,
+  - a short English paragraph (what changed, test result, commit hash),
+  - a small English Mermaid diagram showing the design at that step (always include one).
 - Replace `wave.vcd` with the newest waveform whenever a stage completes.
