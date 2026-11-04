@@ -219,21 +219,24 @@ Validate design on physical FPGA silicon and complete full RTL-to-GDSII flow via
 rv32i-tapeout-soc/
 ├── .github/workflows/regression.yml  # Automated CI regression
 ├── rtl/                              # SystemVerilog RTL modules
+│   ├── soc_top.v                     # Chip top: core + buses + memories + peripherals
 │   ├── core/                         # Pipeline datapath, hazard unit, CSRs
+│   ├── mem/                          # On-chip instruction / data RAMs
 │   ├── cache/                        # 2-Way I/D caches & RAMs
-│   ├── bus/                          # AXI4 interconnect & bridges
+│   ├── bus/                          # AXI4 interconnect & bridges (axil_i_bus, axil_d_bus)
 │   └── periph/                       # CLINT, UART
 ├── verif/
 │   ├── lv0/                          # Verilator C++ testbench & Makefile
 │   ├── isa/                          # rv32ui ISA suite (Makefile, link.ld, bin/)
 │   ├── cocotb/                       # Python constrained-random tests
+│   │   └── <module>/                 # One folder per DUT: tb wrapper + test_<module>.py
 │   └── run_all.py                    # Regression runner
 ├── sw/
 │   ├── boot/                         # crt0.S, linker.ld
 │   ├── drivers/                      # UART, timer drivers
 │   ├── benchmarks/                   # CoreMark, Dhrystone
 │   └── os/                           # FreeRTOS port
-├── fpga/                             # Vivado scripts, constraints (XDC)
+├── fpga/                             # Board top (fpga_top.v), Vivado scripts, constraints (XDC)
 └── openlane/                         # ASIC config.json & pin layout
 ```
 

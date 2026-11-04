@@ -6,10 +6,10 @@ __pycache__/
 # cocotb / simulation artifacts
 sim_build/
 results.xml
-*.vcd
+*.result.xml
+.pytest_cache/
 *.fst
 *.ghw
-dump.vcd
 
 # Verilator
 obj_dir/

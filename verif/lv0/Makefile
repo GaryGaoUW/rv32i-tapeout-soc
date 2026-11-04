@@ -1,12 +1,15 @@
-TOP_MODULE = core_top
+TOP_MODULE = soc_top
 RTL_DIR    = ../../rtl
+# RTL is split by function (see ROADMAP Appendix B); Verilator searches
+# every directory below for module definitions.
+RTL_SUBDIRS = core mem bus
 SIM_SRC    = sim_main.cpp
 BIN        = obj_dir/V$(TOP_MODULE)
 
 VFLAGS = --cc --exe --build --trace \
          --top-module $(TOP_MODULE) \
          -Wno-fatal \
-         -I$(RTL_DIR)
+         $(addprefix -I$(RTL_DIR)/,$(RTL_SUBDIRS))
 
 .PHONY: all build run wave clean
 
@@ -19,8 +22,7 @@ run: build
 	./$(BIN)
 
 wave:
-	surfer wave.vcd
+	surfer $(CURDIR)/wave.vcd
 
 clean:
 	rm -rf obj_dir *.vcd
-
