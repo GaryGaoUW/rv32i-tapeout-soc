@@ -114,7 +114,6 @@ module axil_ram #(
     end
 
     // Stage 3: Combinational logic to determine outputs
-    // TODO: arready / awready / wready / rvalid / bvalid / rresp / bresp
     assign s_axil_awready_o = (state == s_idle) && s_axil_awvalid_i && s_axil_wvalid_i;
     assign s_axil_wready_o = (state == s_idle) && s_axil_wvalid_i && s_axil_awvalid_i;
     // We assume write has higher priority
@@ -128,7 +127,6 @@ module axil_ram #(
 
     // Allocate 2^10 words (4KB) of BRAM space
     reg [31:0] mem[0:(1<<ADDR_W)-1];
-
 
     // Chop the last two bits off, since all addresses in RISC-V are word-aligned
     wire [ADDR_W-1:0] aw_addr_word = s_axil_awaddr_i[ADDR_W+1:2];
@@ -145,7 +143,7 @@ module axil_ram #(
     end
 
     // For debugging!
-    // Simulate when read resp take more then 1 cycle
+    // Simulate when read resp take more then 2 cycle
     always @(posedge a_clk or negedge a_reset_n) begin
         if (!a_reset_n) begin
             _dbg_delay <= 0;
